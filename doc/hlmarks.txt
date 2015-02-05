@@ -83,8 +83,9 @@ LIMITATION                                                *hlmarks-limitation*
 ==============================================================================
 INSTALLATION                                            *hlmarks-installation*
 
-This plug-in is developed against Vim 7.4, but earlier versions of Vim should
-work as long as Vim is compiled with the |signs| feature.
+This plug-in is developed against Vim 7.4.
+Since this plug-in uses some of the features that have been introduced from
+7.4, it works only in 7.4 or later.
 
 This plug-in follows the standard runtime path structure, so you can install
 with a variety of plug-in managers such as Pathogen, Vundle, NeoBundle, or
