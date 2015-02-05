@@ -1,0 +1,341 @@
+*hlmarks.txt*   Highlight marks and display that name + a bit more functions.
+*hlmarks*
+
+	    __  ______  ___           __       	~
+	   / / / / /  |/  /___ ______/ /_______	~
+	  / /_/ / / /|_/ / __ `/ ___/ //_/ ___/ ~
+	 / __  / / /  / / /_/ / /  / ,< (__  )  ~
+	/_/ /_/_/_/  /_/\__,_/_/  /_/|_/____/   ~
+
+
+Version: (see |hlmarks-changelog|)
+Author: AT-AT (https://github.com/AT-AT)
+License: MIT License (see doc/LICENSE.txt)
+Repository: https://github.com/AT-AT/hlmarks.vim
+
+==============================================================================
+CONTENTS                                                    *hlmarks-contents*
+
+THANKS........................................................|hlmarks-thanks|
+INTRODUCTION............................................|hlmarks-introduction|
+LIMITATION................................................|hlmarks-limitation|
+INSTALLATION............................................|hlmarks-installation|
+USAGE..........................................................|hlmarks-usage|
+INTERFACE..................................................|hlmarks-interface|
+    COMMANDS................................................|hlmarks-commands|
+    KEY-MAPPINGS............................................|hlmarks-mappings|
+    DEFAULT KEY-MAPPINGS............................|hlmarks-default-mappings|
+OPTIONS......................................................|hlmarks-options|
+DEVELOPMENT..............................................|hlmarks-development|
+CHANGELOG..................................................|hlmarks-changelog|
+
+==============================================================================
+THANKS                                                        *hlmarks-thanks*
+
+This plug-in is based on the idea of plug-in ShowMarks(Anthony Kruize), and
+I had a hint of implementation from the forked version by exvim and bootleq.
+I thank them to take this opportunity.
+
+Original
+    - http://www.vim.org/scripts/script.php?script_id=152
+Fork
+    - https://github.com/bootleq/ShowMarks
+    - https://github.com/exvim/ex-showmarks
+
+In addition, I made ASCII Text of title by the 'Tools Weptop' web service
+(http://toolswebtop.com/text/ascii/figlet) with using style 'slant'.
+Thank for a great service!
+
+==============================================================================
+INTRODUCTION                                            *hlmarks-introduction*
+
+*hlmarks* is a Vim plug-in to highlight the mark, to display the mark name in
+the left side of the screen(hereinafter called 'gutter'). 
+In addition, it provides the following functions.
+
+    - Toggle a mark on the same line.                       (|hlmarks-toggle|)
+    - Considers vertical order of signs including by the other plug-in on the 
+      gutter in the same line.
+    - Incremental marking.                                (|hlmarks-automark|)
+    - Remove marks on the current line.              (|hlmarks-rm-marks-line|)
+    - Remove marks on the current buffer.          (|hlmarks-rm-marks-buffer|)
+    - Refresh highlights and mark names.                   (|hlmarks-refresh|)
+
+It should be noted that this plug-in is not to control the |mark| function
+itself.
+In other words, even if you set how this plug-in, you do not have any impact 
+on the operation of the |mark| function.
+
+==============================================================================
+LIMITATION                                                *hlmarks-limitation*
+
+- Poor and bad English. 8-(
+- Automatic update of highlight and mark name is done in the 4000ms interval,
+  only when there is no input from the user in the normal mode.
+  This is because the automatic execution of periodic processes is performed
+  in a pseudo approach, there is a possibility that unexpected behavior occurs
+  other than the normal mode.(I am praying sincerely that the official polling
+  functionality is implemented in Vim 8-))
+  Other than the normal mode, assuming that there is less likely to change the
+  mark or display in the gutter by others(plug-ins, etc), so I look at the 
+  situation in this specification at present.
+
+==============================================================================
+INSTALLATION                                            *hlmarks-installation*
+
+This plug-in is developed against Vim 7.4, but earlier versions of Vim should
+work as long as Vim is compiled with the |signs| feature.
+
+This plug-in follows the standard runtime path structure, so you can install
+with a variety of plug-in managers such as Pathogen, Vundle, NeoBundle, or
+directly install from Github, Zip archive, as you like.
+
+==============================================================================
+USAGE                                                          *hlmarks-usage*
+
+This plug-in highlights the line and displays corresponding mark name to the
+gutter when the mark is placed by |m|(a-zA-Z) |m'| |m`| |m[| |m]| |m<| |m>|.
+
+ex: put the mark 'a' >
+
+    ma
+<
+Now, the line put the mark is highlighted, and you will see the mark name 'a>'
+in the gutter.
+Please refer to |hlmarks-options| for a change of color definition of the
+highlights and format of mark name.
+
+                                                              *hlmarks-toggle*
+In addition, when you put the mark on the line that put the same mark again,
+that mark is deleted, and it will also remove highlight and mark name on the
+gutter at the same time.
+
+For other features, please refer to |hlmarks-mappings| and |hlmarks-commands|.
+
+==============================================================================
+INTERFACE                                                  *hlmarks-interface*
+
+------------------------------------------------------------------------------
+COMMANDS                                                    *hlmarks-commands*
+
+:HlMarksOn                                          *hlmarks-command-activate*
+        Activate this plug-in.
+
+:HlMarksOff                                       *hlmarks-command-inactivate*
+        Inactivate this plug-in.
+
+------------------------------------------------------------------------------
+KEY MAPPINGS                                                *hlmarks-mappings*
+
+<Plug>(hlmarks-activate)                                    *hlmarks-activate*
+        Activate this plug-in.
+
+<Plug>(hlmarks-inactivate)                                *hlmarks-inactivate*
+        Inactivate this plug-in.
+
+<Plug>(hlmarks-reload)                                        *hlmarks-reload*
+        Reload the options for the highlight and reconfigure, update the state
+        by |hlmarks-refresh|.
+
+<Plug>(hlmarks-refresh-signs)                                *hlmarks-refresh*
+        Update the highlight and mark name on the basis of the current mark.
+
+<Plug>(hlmarks-automark)                                    *hlmarks-automark*
+        In the range of a-zA-Z, unused mark is put in order from 'a'.
+        Regardless of whether put mark is allowed to highlight and display 
+        name or not, always the character of a-zA-Z is used.
+        (Also refer to |hlmarks_displaying_marks|)
+
+<Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*
+        Remove removable marks(all but '(){}) that is placed on the current 
+        line, and remove the highlight and mark name at the same time.
+
+<Plug>(hlmarks-remove-marks-buffer)                  *hlmarks-rm-marks-buffer*
+        Remove removable marks(same as above) that is placed on the current 
+        buffer, and remove the highlight and mark name at the same time.
+
+------------------------------------------------------------------------------
+DEFAULT KEY-MAPPINGS                                *hlmarks-default-mappings*
+
+<Leader>mr      <Plug>(hlmarks-refresh-signs)
+<Leader>mm      <Plug>(hlmarks-automark)
+<Leader>ml      <Plug>(hlmarks-remove-marks-line)
+<Leader>mb      <Plug>(hlmarks-remove-marks-buffer)
+
+If 0 is set to |hlmarks_use_default_key_maps|, default key mapping is not
+defined.
+
+<Leader> of the default key mapping can be changed by |hlmarks_prefix_key|.
+
+==============================================================================
+OPTIONS                                                      *hlmarks-options*
+
+hlmarks_activate_on_boot                            *hlmarks_activate_on_boot*
+
+        Default: 1
+        Normally hlmarks is activated on boot.
+        If you want to inactivate hlmarks on boot, set to 0. >
+
+        let g:hlmarks_activate_on_boot = 0
+<
+hlmarks_displaying_marks                            *hlmarks_displaying_marks*
+
+        Default: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Specifies the mark to highlight and display the name in the gutter.
+        If |hlmarks_sort_stacked_signs| is set to 1, when two or more marks
+        were presented in the same line, it will be sorted in the order of the
+        string that you specify in this option.
+        Since mark name is displayed over left -> right order of the string,
+        if it has been set as follows... >
+
+        let g:hlmarks_displaying_marks = 'ABCabc'
+<
+        ... and if marks('ABCabc') were set in the same row, 'c>' appears
+        uppermost, other mark names do not appear.
+        [Note]
+            Letters that are not specified in this option are just not
+            highlighted and display it's mark name, but put marks by |mark|
+            function.
+
+hlmarks_sort_stacked_signs                        *hlmarks_sort_stacked_signs*
+
+        Default: 1
+        Specify whether or not to sort the mark name when it will be displayed.
+        If you do not want to sort the mark name, set to 0. >
+
+        let g:hlmarks_sort_stacked_signs = 0
+<
+hlmarks_ignore_buffer_type                        *hlmarks_ignore_buffer_type*
+
+        Default: 'hq'
+        Specify the buffer type that does not highlight and display mark name.
+        Possible types are as follows. >
+        
+        h|H - help
+        q|Q - Quickfix
+        p|P - preview-window
+        r|R - read-only
+        m|M - modifiable
+        
+        let g:hlmarks_ignore_buffer_type = 'hqpr'
+<
+        [Note]
+            Buffers that are not specified in this option are just not
+            highlighted and display it's mark name, but put marks by |mark|
+            function.
+
+hlmarks_use_default_key_maps                    *hlmarks_use_default_key_maps*
+
+        Default: 1
+        Specify whether or not to enable the default key mapping.
+        If you want to disable the default key mapping, set to 0. >
+        
+            let g:hlmarks_use_default_key_maps = 0
+<
+hlmarks_prefix_key                                        *hlmarks_prefix_key*
+
+        Default: '<Leader>'
+        Specify the start key to be used in the default key mapping.
+        ex: Change to <Space> >
+        
+        let g:hlmarks_prefix_key = '<Space>'
+<
+hlmarks_alias_native_mark_cmd                  *hlmarks_alias_native_mark_cmd*
+
+        Default: '\sm'
+        Specify alias of mark installation command by |mark| function.
+        (Change only if a problem occurs with the default settings)
+
+hlmarks_command_prefix                                *hlmarks_command_prefix*
+
+        Default: 'HlMarks'
+        Specify prefix of commands(|hlmarks-commands|).
+        (Change only if a problem occurs with the default settings)
+
+hlmarks_autocmd_group                                  *hlmarks_autocmd_group*
+
+        Default: 'HlMarks'
+        Specify prefix of |autocmd| group name.
+        (Change only if a problem occurs with the default settings)
+
+hlmarks_stacked_signs_order                      *hlmarks_stacked_signs_order*
+
+        Default: 0
+        Specify the display priority when the mark name by this plug-in
+        overlaps with the character by other plug-ins on the gutter.
+        Possible priority is as follows. >
+
+        0 - always bottom(If overlapped, mark name doesn't appear)
+        1 - as-is
+        2 - always top(If overlapped, mark name always appear)
+
+        let g:hlmarks_stacked_signs_order = 2
+<
+hlmarks_sign_format_lower                          *hlmarks_sign_format_lower*
+hlmarks_sign_format_upper                          *hlmarks_sign_format_upper*
+hlmarks_sign_format_number                        *hlmarks_sign_format_number*
+hlmarks_sign_format_symbol                        *hlmarks_sign_format_symbol*
+
+        Default: '%m>'
+        Specifiy format of the mark name in the following rules.
+            - '%m' in the format string will be replaced by the mark name.
+            - There is only one '%m' in the format string, and it's required.
+            - The length of the format string can be up to 2 bytes.('%m' is
+              assumed to be 1 byte).
+        Therefore, it will be practically specified in the following three
+        patterns. >
+
+        (X is any single-byte character)
+        X%m
+        %m
+        %mX
+<
+hlmarks_sign_linehl_lower                          *hlmarks_sign_linehl_lower*
+hlmarks_sign_linehl_upper                          *hlmarks_sign_linehl_upper*
+hlmarks_sign_linehl_number                        *hlmarks_sign_linehl_number*
+hlmarks_sign_linehl_symbol                        *hlmarks_sign_linehl_symbol*
+
+        Default: 'ctermfg=darkblue ctermbg=blue cterm=bold
+                  guifg=blue guibg=lightblue gui=bold'
+        Specify the highlight setting except gutter part in each character
+        class.
+
+hlmarks_sign_gutterhl_lower                      *hlmarks_sign_gutterhl_lower*
+hlmarks_sign_gutterhl_upper                      *hlmarks_sign_gutterhl_upper*
+hlmarks_sign_gutterhl_number                    *hlmarks_sign_gutterhl_number*
+hlmarks_sign_gutterhl_symbol                    *hlmarks_sign_gutterhl_symbol*
+
+        Default: 'ctermfg=darkblue ctermbg=blue cterm=bold
+                  guifg=blue guibg=lightblue gui=bold'
+        Specify the highlight setting of gutter part in each character class.
+
+==============================================================================
+DEVELOPMENT                                              *hlmarks-development*
+
+For the testing and debugging, using the following plug-ins.
+    - vim-owl (https://github.com/osyo-manga/vim-owl)
+    - vimconsole (https://github.com/rbtnn/vimconsole.vim)
+
+For execution of test, open the test file(test/test_*.vim), and then run the
+following command. >
+
+    :OwlRun
+<
+At this time, it is safe and reliable to be done in another Vim process.
+It should be noted, currently only have prepared tests for some functions,
+since it does not have done enough testing. Please be forewarned.
+About writing test and others, please refer to the documentation and samples
+of vim-owl.
+
+For the format of the help file, referring to the following project.
+    - Syntastic (https://github.com/scrooloose/syntastic)
+    - agit.vim (https://github.com/cohama/agit.vim)
+
+==============================================================================
+CHANGELOG                                                  *hlmarks-changelog*
+
+2015/02/05  version 0.1~
+    + Initial release.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl
