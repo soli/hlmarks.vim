@@ -8,7 +8,7 @@ if exists('g:loaded_hlmarks') && g:loaded_hlmarks
 endif
 
 " Check version.
-if v:version < 700
+if v:version < 704
   finish
 endif
 
