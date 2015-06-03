@@ -399,9 +399,6 @@ function! s:extract_placed_specs(bundle, line_no, pattern)
     call add(sign_specs[line_no].ids, sign_id)
   endfor
 
-  " Except line that don't contains sign of mark.
-  call filter(sign_specs, '!empty(v:val.marks)')
-
   return a:line_no == 0
     \ ? sign_specs
     \ : (has_key(sign_specs, a:line_no) ? sign_specs[a:line_no] : sign_spec)
