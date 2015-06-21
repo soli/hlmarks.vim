@@ -321,8 +321,10 @@ function! s:update_signs()
     for [line_no, sign_spec] in items(sign_snapshot)
 
       " Line numbers in snapshot is same as cache, because mark state is
-      " not changed. 
-      if sign_spec == sign_cache[line_no]
+      " not changed.
+      " XXX: But in some situation (for some reason), there's case that mark
+      " state is not changed but only sign(by Hlmarks) is set(not in cache).
+      if has_key(sign_cache, line_no) != 0 && sign_spec == sign_cache[line_no]
         continue
       endif
 
