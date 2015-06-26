@@ -314,16 +314,10 @@ function! s:update_signs()
     " echo reltimestr(reltime()) . '(by change of marks)'
 
   " 2) If only sign state is changed, it indicates other sign is placed
-  "    (by other plugins, by user-operations, etc) ONLY on line that placed
-  "    mark. Because sign state only contains signs of mark, and they are
-  "    only placed on mark, so newly placed signs are only on marked line.
+  "    by other plugins, by user-operations, etc.
+  "    Note: sign state contains line that only has sign marked by others.
   elseif sign_snapshot != sign_cache
     for [line_no, sign_spec] in items(sign_snapshot)
-
-      " Line numbers in snapshot is same as cache, because mark state is
-      " not changed.
-      " XXX: But in some situation (for some reason), there's case that mark
-      " state is not changed but only sign(by Hlmarks) is set(not in cache).
       if has_key(sign_cache, line_no) != 0 && sign_spec == sign_cache[line_no]
         continue
       endif
