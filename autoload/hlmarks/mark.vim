@@ -92,7 +92,7 @@ endfunction
 " Return: [Dict] cache (see generate_state())
 "
 function! hlmarks#mark#get_cache()
-  return hlmarks#cache#get(s:mark.cache_name, '')
+  return hlmarks#cache#get(s:mark.cache_name, {})
 endfunction
 
 "
