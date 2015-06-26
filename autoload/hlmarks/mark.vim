@@ -89,7 +89,7 @@ endfunction
 "
 " Get mark state cache.
 "
-" Return: [String] cache (see generate_state())
+" Return: [Dict] cache (see generate_state())
 "
 function! hlmarks#mark#get_cache()
   return hlmarks#cache#get(s:mark.cache_name, '')
@@ -182,7 +182,7 @@ endfunction
 "
 " Set mark state cache.
 "
-" Param:  [String] (a:1) cache(default=generate_state())
+" Param:  [Dict] (a:1) cache(default=generate_state())
 "
 function! hlmarks#mark#set_cache(...)
   call hlmarks#cache#set(s:mark.cache_name, (a:0 ? a:1 : hlmarks#mark#generate_state()))
