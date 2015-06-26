@@ -335,11 +335,16 @@ For the format of the help file, referring to the following project.
 ==============================================================================
 CHANGELOG                                                  *hlmarks-changelog*
 
-2015/02/05  version 0.1~
-    + Initial release.
+2015/06/26  version 0.3~
+    + Fix condition for updating sign.
+      (issue#2, thanks yggdr!)
+    + Fix default value for getting cache of mark.
+    + Fix some comments.
 2015/06/03  version 0.2~
     + Fix bug that sign by other plug-in is not sorted.
       (issue#1, thanks yggdr!)
+2015/02/05  version 0.1~
+    + Initial release.
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl
