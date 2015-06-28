@@ -20,6 +20,21 @@ function! s:_export_()
 endfunction
 
 "
+" [For testing] Get SID of this file.
+"
+function! hlmarks#cache#sid()
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
+
+"
+" [For testing] Get local variables in this file.
+"
+function! hlmarks#cache#scope()
+  return s:
+endfunction
+
+"
 " Public.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
