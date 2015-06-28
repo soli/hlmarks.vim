@@ -35,3 +35,6 @@ Icon
 .Spotlight-V100
 .Trashes
 
+# Installed Gems
+vendor/bundle/*
+
