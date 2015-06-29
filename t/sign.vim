@@ -92,11 +92,13 @@ end
 describe 's:defined_bundle()'
 
   before
-    sign define '__test__'
+    let g:__signs__ = s:toggle_sign_defs(1)
   end
 
   after
-    sign undefine '__test__'
+    call s:toggle_sign_defs(0)
+
+    unlet g:__signs__
   end
 
   it 'should return currently defined signs as single string crumb'
@@ -104,7 +106,7 @@ describe 's:defined_bundle()'
 
     Expect type(bundle) == type('') 
     Expect bundle != '' 
-    Expect bundle =~# '__test__'
+    Expect bundle =~# g:__signs__[0]
   end
 
 end
@@ -145,38 +147,35 @@ describe 's:extract_defined_names()'
 
   before
     let g:__func__ = 's:extract_defined_names'
-    let g:__crumb__ = join([
-      \ 'sign __test__Error text=xx linehl=__test__ErrorLine texthl=__test__ErrorSign',
-      \ 'sign __test__Warning text=!! linehl=__test__WarningLine texthl=__test__WarningSign',
-      \ 'sign __test__StyleError text=S> linehl=__test__StyleErrorLine texthl=__test__StyleErrorSign',
-      \ 'sign __test__StyleWarning text=S> linehl=__test__StyleWarningLine texthl=__test__StyleWarningSign'
-      \ ], "\n")
-    let g:__pat__ = '^__test__'
+    let g:__bundle_func__ = 's:defined_bundle'
+    let g:__signs__ = s:toggle_sign_defs(1)
   end
 
   after
+    call s:toggle_sign_defs(0)
+
     unlet g:__func__
-    unlet g:__crumb__
-    unlet g:__pat__
+    unlet g:__bundle_func__
+    unlet g:__signs__
   end
 
   it 'should extarct sign names from strings by s:defined_bundle()'
-    let names = Call(g:__func__, g:__crumb__, g:__pat__)
+    let bundle = Call(g:__bundle_func__)
+    let names = Call(g:__func__, bundle, g:__signs__[0])
 
     Expect type(names) == type([])
-    Expect len(names) == 4
-    for name in names
-      Expect name =~# g:__pat__
-    endfor
+    Expect len(names) == 1
+    Expect names == [g:__signs__[0]]
   end
 
   it 'should return empty list if no sign name is found or passed empty string'
-    let names = Call(g:__func__, '', g:__pat__)
+    let names = Call(g:__func__, '', g:__signs__[0])
 
     Expect type(names) == type([])
     Expect names == []
 
-    let names = Call(g:__func__, g:__crumb__, '^__never_match__')
+    let bundle = Call(g:__bundle_func__)
+    let names = Call(g:__func__, bundle, '^__never_match__')
 
     Expect type(names) == type([])
     Expect names == []
@@ -239,18 +238,14 @@ describe 's:generate_id()'
 
   before
     let g:__func__ = 's:generate_id'
-    let g:__sign__ = '__test__'
-
-    sign unplace *
-    execute 'sign define '.g:__sign__
+    let g:__signs__ = s:toggle_sign_defs(1)
   end
 
   after
-    sign unplace *
-    execute 'sign undefine '.g:__sign__
+    call s:toggle_sign_defs(0)
 
     unlet g:__func__
-    unlet g:__sign__
+    unlet g:__signs__
   end
 
   it 'should generate id=1 if no sign in buffer'
@@ -261,7 +256,7 @@ describe 's:generate_id()'
     let max_id = 10
 
     for id in [7, max_id, 1]
-      execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, g:__sign__, bufnr('%'))
+      execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, g:__signs__[0], bufnr('%'))
     endfor
 
     Expect Call(g:__func__) == max_id + 1
@@ -270,7 +265,7 @@ describe 's:generate_id()'
   it 'should random and less than 100000 number if max number exceeded 100000'
     let max_id = 100010
 
-    execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, g:__sign__, bufnr('%'))
+    execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, g:__signs__[0], bufnr('%'))
 
     Expect Call(g:__func__) <= 100000
   end
@@ -298,28 +293,40 @@ end
 
 describe 's:placed_bundle()'
 
+  before
+    let g:__func__ = 's:placed_bundle'
+    let g:__signs__ = s:toggle_sign_defs(1)
+    let g:__ids__ = s:toggle_sign_placement(g:__signs__)
+  end
+
+  after
+    call s:toggle_sign_placement([])
+    call s:toggle_sign_defs(0)
+
+    unlet g:__func__
+    unlet g:__signs__
+    unlet g:__ids__
+  end
+
   it 'should return placed sign info in designated buffer as single string crumb'
-    let func = 's:placed_bundle'
-    let bufno = bufnr('%')
-    let sign_name = '__test__'
-
-    let bundle = Call(func, bufno)
+    let bundle = Call(g:__func__, bufnr('%'))
 
     Expect type(bundle) == type('')
     Expect bundle != ''
-    Expect bundle !~# sign_name
+    for sign_name in g:__signs__
+      Expect bundle =~# sign_name
+    endfor
+  end
 
-    execute 'sign define '.sign_name
-    execute printf('sign place %s line=%s name=%s buffer=%s', 999, 1, sign_name, bufno)
-
-    let bundle = Call(func, bufno)
+  it 'should return strings not contained sign info if no sign in buffer'
+    call s:toggle_sign_placement([])
+    let bundle = Call(g:__func__, bufnr('%'))
 
     Expect type(bundle) == type('')
     Expect bundle != ''
-    Expect bundle =~# sign_name
-
-    sign unplace *
-    execute 'sign undefine '.sign_name
+    for sign_name in g:__signs__
+      Expect bundle !~# sign_name
+    endfor
   end
 
 end
