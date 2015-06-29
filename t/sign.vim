@@ -101,3 +101,47 @@ describe 's:extract_chars'
 
 end
 
+
+describe 's:extract_defined_names'
+
+  before
+    let g:__func__ = 's:extract_defined_names'
+    let g:__crumb__ = join([
+      \ 'sign __test__Error text=xx linehl=__test__ErrorLine texthl=__test__ErrorSign',
+      \ 'sign __test__Warning text=!! linehl=__test__WarningLine texthl=__test__WarningSign',
+      \ 'sign __test__StyleError text=S> linehl=__test__StyleErrorLine texthl=__test__StyleErrorSign',
+      \ 'sign __test__StyleWarning text=S> linehl=__test__StyleWarningLine texthl=__test__StyleWarningSign'
+      \ ], "\n")
+    let g:__pat__ = '^__test__'
+  end
+
+  after
+    unlet g:__func__
+    unlet g:__crumb__
+    unlet g:__pat__
+  end
+
+  it 'should extarct sign names from strings by s:defined_bundle()'
+    let names = Call(g:__func__, g:__crumb__, g:__pat__)
+
+    Expect type(names) == type([])
+    Expect len(names) == 4
+    for name in names
+      Expect name =~# g:__pat__
+    endfor
+  end
+
+  it 'should return empty list if no sign name is found or passed empty string'
+    let names = Call(g:__func__, '', g:__pat__)
+
+    Expect type(names) == type([])
+    Expect names == []
+
+    let names = Call(g:__func__, g:__crumb__, '^__never_match__')
+
+    Expect type(names) == type([])
+    Expect names == []
+  end
+
+end
+
