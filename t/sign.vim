@@ -4,6 +4,37 @@ runtime! plugin/hlmarks.vim
 
 call vspec#hint({'scope': 'hlmarks#sign#scope()', 'sid': 'hlmarks#sign#sid()'})
 
+
+function! s:toggle_sign_defs(define)
+  let sign_names = []
+  for name in ['foo', 'bar', 'baz']
+    let sign_name = '__test__'.name
+    execute 'sign '.(a:define ? '' : 'un').'define '.sign_name
+    call add(sign_names, sign_name)
+  endfor
+
+  return sign_names
+endfunction
+
+
+function! s:toggle_sign_placement(sign_names)
+  if a:sign_names == []
+    sign unplace *
+    return []
+  endif
+
+  let sign_ids = []
+  let id = 1
+  for sign_name in a:sign_names
+    execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, sign_name, bufnr('%'))
+    call add(sign_ids, id)
+    let id += 1
+  endfor
+
+  return sign_ids
+endfunction
+
+
 describe 's:fix_format()'
 
   before
@@ -149,6 +180,56 @@ describe 's:extract_defined_names()'
 
     Expect type(names) == type([])
     Expect names == []
+  end
+
+end
+
+
+describe 's:extract_placed_ids()'
+
+  before
+    let g:__func__ = 's:extract_placed_ids'
+    let g:__bundle_func__ = 's:placed_bundle'
+    let g:__signs__ = s:toggle_sign_defs(1)
+    let g:__ids__ = s:toggle_sign_placement(g:__signs__)
+  end
+
+  after
+    call s:toggle_sign_placement([])
+    call s:toggle_sign_defs(0)
+
+    unlet g:__func__
+    unlet g:__bundle_func__
+    unlet g:__signs__
+    unlet g:__ids__
+  end
+
+  it 'should return empty list if no sign in buffer'
+    call s:toggle_sign_placement([])
+
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let ids = Call(g:__func__, bundle, g:__signs__[0])
+
+    Expect type(ids) == type([])
+    Expect len(ids) == 0
+  end
+
+  it 'should extract id of sign matched passed pattern from strings by s:placed_bundle()'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let ids = Call(g:__func__, bundle, g:__signs__[0])
+
+    Expect type(ids) == type([])
+    Expect len(ids) == 1
+    Expect ids == [g:__ids__[0]]
+  end
+
+  it 'should extract all id of sign if passed empty pattern'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let ids = Call(g:__func__, bundle, '')
+
+    Expect type(ids) == type([])
+    Expect len(ids) == len(g:__ids__)
+    Expect sort(ids, 'n') == sort(deepcopy(g:__ids__), 'n')
   end
 
 end
