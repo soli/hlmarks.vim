@@ -4,7 +4,7 @@ runtime! plugin/hlmarks.vim
 
 call vspec#hint({'scope': 'hlmarks#sign#scope()', 'sid': 'hlmarks#sign#sid()'})
 
-describe 's:fix_format'
+describe 's:fix_format()'
 
   before
     let g:__func__ = 's:fix_format'
@@ -49,7 +49,7 @@ describe 's:fix_format'
 end
 
 
-describe 's:sign_names_sorter'
+describe 's:sign_names_sorter()'
 
   it 'should sort according to list of character order'
     SKIP 'Currently unable to test.'
@@ -58,7 +58,7 @@ describe 's:sign_names_sorter'
 end
 
 
-describe 's:defined_bundle'
+describe 's:defined_bundle()'
 
   before
     sign define '__test__'
@@ -79,7 +79,7 @@ describe 's:defined_bundle'
 end
 
 
-describe 's:extract_chars'
+describe 's:extract_chars()'
 
   it 'should extract designated character class from passed strings'
     let target = 'ABCdef123<>.[]'
@@ -102,7 +102,7 @@ describe 's:extract_chars'
 end
 
 
-describe 's:extract_defined_names'
+describe 's:extract_defined_names()'
 
   before
     let g:__func__ = 's:extract_defined_names'
