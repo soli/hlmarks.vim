@@ -81,22 +81,30 @@ end
 
 describe 's:extract_chars()'
 
+  before
+    let g:__func__ = 's:extract_chars'
+  end
+
+  after
+    unlet g:__func__
+  end
+
   it 'should extract designated character class from passed strings'
     let target = 'ABCdef123<>.[]'
 
-    Expect Call('s:extract_chars', 'lower', target) == 'def'
-    Expect Call('s:extract_chars', 'upper', target) == 'ABC'
-    Expect Call('s:extract_chars', 'number', target) == '123'
-    Expect Call('s:extract_chars', 'symbol', target) == '<>.[]'
+    Expect Call(g:__func__, 'lower', target) == 'def'
+    Expect Call(g:__func__, 'upper', target) == 'ABC'
+    Expect Call(g:__func__, 'number', target) == '123'
+    Expect Call(g:__func__, 'symbol', target) == '<>.[]'
   end
 
   it 'should extract no character from empty string'
     let target = ''
 
-    Expect Call('s:extract_chars', 'lower', target) == ''
-    Expect Call('s:extract_chars', 'upper', target) == ''
-    Expect Call('s:extract_chars', 'number', target) == ''
-    Expect Call('s:extract_chars', 'symbol', target) == ''
+    Expect Call(g:__func__, 'lower', target) == ''
+    Expect Call(g:__func__, 'upper', target) == ''
+    Expect Call(g:__func__, 'number', target) == ''
+    Expect Call(g:__func__, 'symbol', target) == ''
   end
 
 end
