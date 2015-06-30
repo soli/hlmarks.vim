@@ -302,18 +302,21 @@ hlmarks_sign_gutterhl_symbol                    *hlmarks_sign_gutterhl_symbol*
 開発について                                             *hlmarks-development*
 
 テストやデバッグには、以下のプラグインを使用しています。
-    - vim-owl（https://github.com/osyo-manga/vim-owl）
+    - vim-vspec（https://github.com/kana/vim-vspec）
     - vimconsole（https://github.com/rbtnn/vimconsole.vim）
 
-テストは、テストファイル（test/test_*.vim）を開いて、以下のコマンドにより実行
-します。 >
+vim-vspecはこのプラグインに同梱されていますが、その他にもいくつかのGemをインス
+トールする必要があります（Gemfileを参照してください）。
 
-    :OwlRun
+テストは、プラグインディレクトリ内で以下のコマンドにより実行します。 >
+
+    bundle exec rake test  （Bundler使用時）
+      または
+    rake test
 <
-このとき、別のVimプロセスで行うと安心・確実です。
 なお、現在はいくつかの関数についてのテストを用意しているのみで、十分なテストを
 行えていません。予めご了承ください。
-テストの書き方他については、vim-owl のドキュメントやサンプルを参照ください。
+テストの書き方他については、vim-vspec のドキュメントやサンプルを参照ください。
 
 ヘルプファイルのフォーマットについては、以下のプロジェクトを参考にしました。
     - Syntastic（https://github.com/scrooloose/syntastic）
@@ -322,6 +325,9 @@ hlmarks_sign_gutterhl_symbol                    *hlmarks_sign_gutterhl_symbol*
 ==============================================================================
 更新履歴                                                   *hlmarks-changelog*
 
+2015/07/01~
+    + テストをvim-vspecへ移行
+    + いくつかのコメントを修正
 2015/06/26  version 0.3~
     + サイン更新条件の間違いを修正
       （issue#2, ありがとう yggdr さん！）
