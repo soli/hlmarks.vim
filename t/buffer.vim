@@ -5,6 +5,21 @@ runtime! plugin/hlmarks.vim
 call vspec#hint({'scope': 'hlmarks#buffer#scope()', 'sid': 'hlmarks#buffer#sid()'})
 
 
+describe 'numbers()'
+
+  it 'should return all buffer numbers'
+    let numbers = hlmarks#buffer#numbers()
+
+    Expect type(numbers) == type([])
+    Expect len(numbers) >= 1
+    for bnum in numbers
+      Expect type(bnum) == type(1)
+    endfor
+  end
+
+end
+
+
 describe 's:bundle()'
 
   it 'should return buffer list info as single string crumb'
