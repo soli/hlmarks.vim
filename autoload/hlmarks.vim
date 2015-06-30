@@ -287,9 +287,6 @@ function! s:toggle_usercmd(flag)
     silent! execute printf(
       \ 'command!          %sReload call hlmarks#reload_plugin()',
       \ g:hlmarks_command_prefix)
-    silent! execute printf(
-      \ 'command! -nargs=* %sInvoke call hlmarks#util#invoke_func(<f-args>)',
-      \ g:hlmarks_command_prefix)
     return
   endif
 
