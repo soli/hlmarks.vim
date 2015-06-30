@@ -184,6 +184,129 @@ describe 's:extract_defined_names()'
 end
 
 
+describe 's:extract_placed_specs'
+
+  before
+    let g:__func__ = 's:extract_placed_specs'
+    let g:__bundle_func__ = 's:placed_bundle'
+    let g:__sign_spec_tmpl__ = {
+      \ 'marks': [],
+      \ 'others': [],
+      \ 'all': [],
+      \ 'ids': [],
+      \ 'order': []
+      \ }
+
+    " line-no, id, name
+    " Note: Signs are placed following order, AND appears in bundle(sign place
+    "       buffer=n) with INVERSE order.
+    let g:__sign_specs__ = [
+      \ [1, 12, 'MYS_b'],
+      \ [1, 11, 'MYS_a'],
+      \ [2, 26, 'OTS_2'],
+      \ [2, 22, 'MYS_d'],
+      \ [2, 21, 'MYS_c'],
+      \ [2, 25, 'OTS_1'],
+      \ [3, 32, 'OTS_4'],
+      \ [3, 31, 'OTS_3'],
+      \ ]
+
+    for spec in g:__sign_specs__
+      execute 'sign define '.spec[2]
+      execute printf('sign place %s line=%s name=%s buffer=%s', spec[1], spec[0], spec[2], bufnr('%'))
+    endfor
+  end
+
+  after
+    sign unplace *
+    for spec in g:__sign_specs__
+      execute 'sign undefine '.spec[2]
+    endfor
+
+    unlet g:__func__
+    unlet g:__bundle_func__
+    unlet g:__sign_spec_tmpl__
+    unlet g:__sign_specs__
+  end
+
+  it 'should return empty spec-hash if no sign in buffer (line-no specified)'
+    sign unplace *
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+
+    Expect Call(g:__func__, bundle, 1, '^MYS') == g:__sign_spec_tmpl__
+  end
+
+  it 'should extract spec-hash contains both(self,others) signs (line-no specified)'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let expected = {
+      \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
+      \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
+      \ 'all':    [ [26, 'OTS_2'], [22, 'MYS_d'], [21, 'MYS_c'], [25, 'OTS_1'] ],
+      \ 'ids':    [ 25, 21, 22, 26 ],
+      \ 'order':  [ 0, 1, 1, 0 ]
+      \ }
+
+    Expect Call(g:__func__, bundle, 2, '^MYS') == expected
+  end
+
+  it 'should extract spec-hash only contains only signs of self (line-no specified)'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let expected = {
+      \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+      \ 'others': [],
+      \ 'all':    [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+      \ 'ids':    [ 11, 12 ],
+      \ 'order':  [ 1, 1 ]
+      \ }
+
+    Expect Call(g:__func__, bundle, 1, '^MYS') == expected
+  end
+
+  it 'should extract spec-hash only contains only signs of others (line-no specified)'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let expected = {
+      \ 'marks':  [],
+      \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
+      \ 'all':    [ [32, 'OTS_4'], [31, 'OTS_3'] ],
+      \ 'ids':    [ 31, 32 ],
+      \ 'order':  [ 0, 0 ]
+      \ }
+
+    Expect Call(g:__func__, bundle, 3, '^MYS') == expected
+  end
+
+  it 'should extract all signs as line-no => spec-hash (line-no = 0)'
+    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let expected = {
+      \ '1': {
+        \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+        \ 'others': [],
+        \ 'all':    [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+        \ 'ids':    [ 11, 12 ],
+        \ 'order':  [ 1, 1 ]
+        \ },
+      \ '2': {
+        \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
+        \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
+        \ 'all':    [ [26, 'OTS_2'], [22, 'MYS_d'], [21, 'MYS_c'], [25, 'OTS_1'] ],
+        \ 'ids':    [ 25, 21, 22, 26 ],
+        \ 'order':  [ 0, 1, 1, 0 ]
+        \ },
+      \ '3': {
+        \ 'marks':  [],
+        \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
+        \ 'all':    [ [32, 'OTS_4'], [31, 'OTS_3'] ],
+        \ 'ids':    [ 31, 32 ],
+        \ 'order':  [ 0, 0 ]
+        \ }
+      \ }
+
+    Expect Call(g:__func__, bundle, 0, '^MYS') == expected
+  end
+
+end
+
+
 describe 's:extract_placed_ids()'
 
   before
