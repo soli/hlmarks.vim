@@ -35,6 +35,93 @@ function! s:toggle_sign_placement(sign_names)
 endfunction
 
 
+describe 'reorder_spec()'
+
+  before
+    let g:__o_displaying_marks = g:hlmarks_displaying_marks
+    let g:__o_sort_stacked_signs = g:hlmarks_sort_stacked_signs
+    let g:__o_stacked_signs_order = g:hlmarks_stacked_signs_order
+
+    let local_sign = Ref('s:sign')
+    let g:__o_sign_prefix = local_sign.prefix
+    let local_sign.prefix = 'SLF_'
+    call Set('s:sign', local_sign)
+
+    let g:__sign_spec_tmpl__ = {
+      \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
+      \ 'others': [ [21, 'OTS_2'], [20, 'OTS_1'] ],
+      \ 'order':  [ 1, 0, 0, 1 ]
+      \ }
+    let g:hlmarks_displaying_marks = 'ba'
+  end
+
+  after
+    let g:hlmarks_displaying_marks = g:__o_displaying_marks
+    let g:hlmarks_sort_stacked_signs = g:__o_sort_stacked_signs
+    let g:hlmarks_stacked_signs_order = g:__o_stacked_signs_order
+
+    let local_sign = Ref('s:sign')
+    let local_sign.prefix = g:__o_sign_prefix
+    call Set('s:sign', local_sign)
+
+    unlet g:__o_displaying_marks
+    unlet g:__o_sort_stacked_signs
+    unlet g:__o_stacked_signs_order
+    unlet g:__o_sign_prefix
+    unlet g:__sign_spec_tmpl__
+  end
+
+  it 'should not sort and signs of self are always placed under signs of others'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 0
+    let expected = [ [10, 'SLF_a'], [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+  it 'should sort and signs of self are always placed under signs of others'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 0
+    let expected = [ [11, 'SLF_b'], [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+  it 'should not sort and signs of self/others are placed same order'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 1
+    let expected = [ [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+  it 'should sort and signs of self/others are placed same order'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 1
+    let expected = [ [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+  it 'should not sort and signs of self are always placed above signs of others'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 2
+    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'], [11, 'SLF_b'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+  it 'should sort and signs of self are always placed above signs of others'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 2
+    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'], [10, 'SLF_a'] ]
+
+    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+  end
+
+end
+
+
 describe 's:fix_format()'
 
   before
