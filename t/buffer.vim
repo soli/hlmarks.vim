@@ -16,3 +16,19 @@ describe 's:bundle()'
 
 end
 
+
+describe 's:extract_numbers()'
+
+  it 'should extract more than one buffer numbers from strings by s:bundle() in startup'
+    let bundle = Call('s:bundle')
+    let extracted = Call('s:extract_numbers', bundle)
+
+    Expect type(extracted) == type([])
+    Expect len(extracted) >= 1
+    for bnum in extracted
+      Expect type(bnum) == type(1)
+    endfor
+  end
+
+end
+
