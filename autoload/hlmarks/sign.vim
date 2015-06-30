@@ -29,6 +29,21 @@ function! s:_export_()
 endfunction
 
 "
+" [For testing] Get SID of this file.
+"
+function! hlmarks#sign#sid()
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
+
+"
+" [For testing] Get local variables in this file.
+"
+function! hlmarks#sign#scope()
+  return s:
+endfunction
+
+"
 " Public.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -481,7 +496,7 @@ function! s:generate_id()
 
   " Reuse lower id.
   if id > 100000
-    " http://vim-users.jp/2009/11/hack98/
+    " http://vim-jp.org/vim-users-jp/2009/11/05/Hack-98.html
     if has('reltime')
       let match_end = matchend(reltimestr(reltime()), '\v\d+\.') + 1
       let rand = reltimestr(reltime())[match_end : ] % (100000 + 1)

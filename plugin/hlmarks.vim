@@ -1,5 +1,5 @@
 "
-" Gurads.
+" Guards.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -69,7 +69,7 @@ let g:hlmarks_autocmd_group         = get(g:, 'hlmarks_autocmd_group', 'HlMarks'
 let g:hlmarks_stacked_signs_order   = get(g:, 'hlmarks_stacked_signs_order', 0)
 
 " Format of mark characters in gutter by each character-class.
-" '\t' is replaced to mark name('a', '[', etc), and should be within 2-chars.
+" '%m' is replaced to mark name('a', '[', etc), and format should be within 2chars=3bytes.
 let g:hlmarks_sign_format_lower     = get(g:, 'hlmarks_sign_format_lower',  '%m>')
 let g:hlmarks_sign_format_upper     = get(g:, 'hlmarks_sign_format_upper',  '%m>')
 let g:hlmarks_sign_format_number    = get(g:, 'hlmarks_sign_format_number', '%m>')

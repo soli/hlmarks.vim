@@ -19,6 +19,21 @@ function! s:_export_()
 endfunction
 
 "
+" [For testing] Get SID of this file.
+"
+function! hlmarks#sid()
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
+
+"
+" [For testing] Get local variables in this file.
+"
+function! hlmarks#scope()
+  return s:
+endfunction
+
+"
 " Public.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -271,9 +286,6 @@ function! s:toggle_usercmd(flag)
   if a:flag
     silent! execute printf(
       \ 'command!          %sReload call hlmarks#reload_plugin()',
-      \ g:hlmarks_command_prefix)
-    silent! execute printf(
-      \ 'command! -nargs=* %sInvoke call hlmarks#util#invoke_func(<f-args>)',
       \ g:hlmarks_command_prefix)
     return
   endif
