@@ -24,7 +24,7 @@ set cpo&vim
 " All marks for debug.
 " 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.''`^<>[]{}()"'
 let s:default_marks = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-let s:default_hl = "ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold"
+let s:default_hl = "ctermfg=255 ctermbg=39 cterm=bold guifg=#eeeeee guibg=#00afff gui=bold"
 
 " Whether this plugin is activated or not in boot.
 let g:hlmarks_activate_on_boot      = get(g:, 'hlmarks_activate_on_boot', 1)
