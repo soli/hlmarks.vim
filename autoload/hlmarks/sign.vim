@@ -373,6 +373,8 @@ endfunction
 "                           (If pased '0', returns sign specs for all lines)
 " Param:  [String] pattern: pattern that matches name as mark's
 " Return: [Dict] dictionary of extracted sign spec(s) as following structure
+"          Note that values in all keys are ordered OLD->NEW order.
+"          (FYI) In result of 'sign place..' command, ordered NEW->OLD.
 "          <line_no != 0>
 "           { 'marks':  [[id,name], ..] => sign units as mark's sign
 "             'others': (same sa above) => sign units as other's sign
@@ -418,7 +420,7 @@ function! s:extract_sign_specs(bundle, line_no, pattern)
       call insert(sign_specs[line_no].order, 0)
     endif
 
-    call add(sign_specs[line_no].ids, sign_id)
+    call insert(sign_specs[line_no].ids, sign_id)
   endfor
 
   return a:line_no == 0
