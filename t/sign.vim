@@ -256,7 +256,7 @@ describe 'should_place()'
 end
 
 
-describe 'is_valid_mark()'
+describe 'should_place_on_mark()'
 
   before
     let g:__o_displaying_marks = g:hlmarks_displaying_marks
@@ -271,13 +271,13 @@ describe 'is_valid_mark()'
   it 'should return true if passed mark is in list'
     let g:hlmarks_displaying_marks = 'abc'
 
-    Expect hlmarks#sign#is_valid_mark('a') to_be_true
+    Expect hlmarks#sign#should_place_on_mark('a') to_be_true
   end
 
   it 'should return false if passed mark is not in list'
     let g:hlmarks_displaying_marks = 'abc'
 
-    Expect hlmarks#sign#is_valid_mark('d') to_be_false
+    Expect hlmarks#sign#should_place_on_mark('d') to_be_false
   end
 
 end

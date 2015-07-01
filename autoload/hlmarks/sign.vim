@@ -111,16 +111,6 @@ function! hlmarks#sign#get_cache()
 endfunction
 
 "
-" Determine whether should place sign for a mark or not.
-"
-" Param:  [String] mark: mark name
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#is_valid_mark(mark)
-  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
-endfunction
-
-"
 " Place signs.
 "
 " Param:  [Number] line_no: line no.
@@ -270,6 +260,16 @@ function! hlmarks#sign#should_place()
     \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   == 1         )
     \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable == 0         )
     \ ? 0 : 1
+endfunction
+
+"
+" Determine whether should place sign for a mark or not.
+"
+" Param:  [String] mark: mark name
+" Return: [Number] determination(0/1)
+"
+function! hlmarks#sign#should_place_on_mark(mark)
+  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
 endfunction
 
 "
