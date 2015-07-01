@@ -95,7 +95,7 @@ endfunction
 "
 function! hlmarks#sign#generate_state()
   return s:extract_sign_specs(
-    \ s:sign_bundle(bufnr('%')),
+    \ s:sign_bundle(),
     \ 0,
     \ s:sign_pattern()
     \ )
@@ -165,7 +165,7 @@ function! hlmarks#sign#place_on_mark(line_no, mark_name)
 
   if !(g:hlmarks_stacked_signs_order == 1 && g:hlmarks_sort_stacked_signs == 0)
     let sign_spec = s:extract_sign_specs(
-      \ s:sign_bundle(bufnr('%')),
+      \ s:sign_bundle(),
       \ a:line_no,
       \ s:sign_pattern()
       \ )
@@ -475,7 +475,7 @@ endfunction
 "         And it's is very slow.
 "
 function! s:generate_id()
-  let bundle = s:sign_bundle(bufnr('%'))
+  let bundle = s:sign_bundle()
   let sign_ids = s:extract_sign_ids(bundle, '')
   let id = empty(sign_ids) ? 1 : max(sign_ids) + 1
 
@@ -529,10 +529,11 @@ endfunction
 "           - Grouped by each line-no.
 "           - In group of line-no, ordered by 'placed last->first'.
 "
-function! s:sign_bundle(buffer_no)
+function! s:sign_bundle(...)
+  let buffer_no = a:0 ? a:1 : bufnr('%')
   redir => bundle
     " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign place buffer=%s', a:buffer_no)
+    silent! execute printf('sign place buffer=%s', buffer_no)
   redir END
 
   return bundle

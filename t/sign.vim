@@ -528,6 +528,16 @@ describe 's:sign_bundle()'
     endfor
   end
 
+  it 'should return placed sign info current buffer if no number passed'
+    let bundle = Call(g:__func__)
+
+    Expect type(bundle) == type('')
+    Expect bundle != ''
+    for sign_name in g:__signs__
+      Expect bundle =~# sign_name
+    endfor
+  end
+
   it 'should return strings not contained sign info if no sign in buffer'
     call s:toggle_sign_placement([])
     let bundle = Call(g:__func__, bufnr('%'))
