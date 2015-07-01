@@ -138,6 +138,151 @@ describe 'generate_state()'
 end
 
 
+describe 'get_cache()'
+
+  it 'should return empty hash if cache is empty'
+    let cache = hlmarks#sign#get_cache()
+
+    Expect type(cache) == type({})
+    Expect cache == {}
+  end
+
+  it 'should return cache that is set by set_cache()'
+    call s:ref_local(1)
+    let sign_names = s:toggle_sign_defs(1)
+    let sign_ids = s:toggle_sign_placement(sign_names)
+
+    call s:set_local('prefix', s:testing_prefix())
+
+    call hlmarks#sign#set_cache()
+
+    let cache = hlmarks#sign#get_cache()
+
+    Expect type(cache) == type({})
+    Expect len(cache) == 1
+    Expect has_key(cache, '1') to_be_true
+
+    let extracted_names = []
+    let extracted_ids = []
+    for spec in cache['1'].marks
+      call add(extracted_names, spec[1])
+      call add(extracted_ids, spec[0])
+    endfor
+
+    Expect extracted_names == sign_names
+    Expect extracted_ids == sign_ids
+
+    call s:toggle_sign_placement([])
+    call s:toggle_sign_defs(1)
+    call s:ref_local(0)
+  end
+
+end
+
+
+describe 'is_valid_case()'
+
+  before
+    let g:__o_ignore_buffer_type = g:hlmarks_ignore_buffer_type
+
+    new
+  end
+
+  after
+    let g:hlmarks_ignore_buffer_type = g:__o_ignore_buffer_type
+
+    unlet g:__o_ignore_buffer_type
+
+    close!
+  end
+
+  it 'should return true if all buffer type/state are permitted'
+    let g:hlmarks_ignore_buffer_type = ''
+
+    set buftype=help
+    Expect hlmarks#sign#is_valid_case() to_be_true
+
+    set buftype=quickfix
+    Expect hlmarks#sign#is_valid_case() to_be_true
+
+    set pvw
+    Expect hlmarks#sign#is_valid_case() to_be_true
+
+    set ro
+    Expect hlmarks#sign#is_valid_case() to_be_true
+
+    set modifiable
+    Expect hlmarks#sign#is_valid_case() to_be_true
+  end
+
+  it 'should return false if all buffer type/state are banned'
+    let g:hlmarks_ignore_buffer_type = 'hqprm'
+
+    set buftype=help
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set buftype=quickfix
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set pvw
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set ro
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set modifiable
+    Expect hlmarks#sign#is_valid_case() to_be_false
+  end
+
+  it 'should return false if all buffer type/state are banned with upper-case letler'
+    let g:hlmarks_ignore_buffer_type = 'HQPRM'
+
+    set buftype=help
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set buftype=quickfix
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set pvw
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set ro
+    Expect hlmarks#sign#is_valid_case() to_be_false
+
+    set modifiable
+    Expect hlmarks#sign#is_valid_case() to_be_false
+  end
+
+end
+
+
+describe 'is_valid_mark()'
+
+  before
+    let g:__o_displaying_marks = g:hlmarks_displaying_marks
+  end
+
+  after
+    let g:hlmarks_displaying_marks = g:__o_displaying_marks
+
+    unlet g:__o_displaying_marks
+  end
+
+  it 'should return true if passed mark is in list'
+    let g:hlmarks_displaying_marks = 'abc'
+
+    Expect hlmarks#sign#is_valid_mark('a') to_be_true
+  end
+
+  it 'should return false if passed mark is not in list'
+    let g:hlmarks_displaying_marks = 'abc'
+
+    Expect hlmarks#sign#is_valid_mark('d') to_be_false
+  end
+
+end
+
+
 describe 'reorder_spec()'
 
   before
