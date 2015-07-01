@@ -180,6 +180,83 @@ describe 'get_cache()'
 end
 
 
+describe 'place()'
+
+  it 'should place signs according to passed specs'
+    let sign_names = s:toggle_sign_defs(1)
+
+    let bundle_func = 's:sign_bundle'
+    let sign_specs = []
+    let id = 1
+    for name in sign_names
+      call add(sign_specs, [id, name])
+      let id += 1
+    endfor
+
+    call hlmarks#sign#place(1, sign_specs)
+    let bundle = Call(bundle_func)
+    unlet name
+
+    for name in sign_names
+      Expect bundle =~ name
+    endfor
+
+    call s:toggle_sign_defs(0)
+  end
+
+end
+
+
+describe 'place_on_mark()'
+
+  before
+    call s:ref_local(1)
+    let g:__signs__ = s:toggle_sign_defs(1)
+
+    call s:set_local('prefix', s:testing_prefix())
+
+    let g:__o_sort_stacked_signs = g:hlmarks_sort_stacked_signs
+    let g:__o_stacked_signs_order = g:hlmarks_stacked_signs_order
+
+    let g:__bundle_func__ = 's:sign_bundle'
+    let g:__extract_func__ = 's:extract_sign_specs'
+  end
+
+  after
+    let g:hlmarks_sort_stacked_signs = g:__o_sort_stacked_signs
+    let g:hlmarks_stacked_signs_order = g:__o_stacked_signs_order
+
+    unlet g:__o_sort_stacked_signs
+    unlet g:__o_stacked_signs_order
+
+    unlet g:__bundle_func__
+    unlet g:__extract_func__
+
+    unlet g:__signs__
+
+    call s:toggle_sign_defs(0)
+    call s:ref_local(0)
+  end
+
+
+  it 'should place signs on designated line as name for designated mark (order=as-is)'
+    let g:hlmarks_stacked_signs_order = 1
+    let g:hlmarks_sort_stacked_signs = 0
+
+    call hlmarks#sign#place_on_mark(1, 'foo')
+
+    let bundle = Call(g:__bundle_func__)
+    let prefix = s:testing_prefix()
+    let spec = Call(g:__extract_func__, bundle, 1, prefix)
+
+    Expect len(spec) != 0
+    Expect len(spec.marks) == 1
+    Expect index(g:__signs__, spec.marks[0][1]) >= 0
+  end
+
+end
+
+
 describe 'should_place()'
 
   before
