@@ -42,7 +42,7 @@ endfunction
 " Param:  [List] list of buffer numbers
 "
 function! hlmarks#buffer#numbers()
-  return s:extract_numbers(s:bundle())
+  return s:extract_buffer_number(s:buffer_bundle())
 endfunction
 
 "
@@ -56,7 +56,7 @@ endfunction
 " Return: [String] bundle that contains buffer list
 " Note:   List all buffers with '!' option.
 "
-function! s:bundle()
+function! s:buffer_bundle()
   redir => bundle
     silent execute 'ls!'
   redir END
@@ -70,7 +70,7 @@ endfunction
 " Param:  [String] bundle: bundle of listed buffers
 " Return: [List] list of extracted buffer number
 "
-function! s:extract_numbers(bundle)
+function! s:extract_buffer_number(bundle)
   let buffer_numbers = []
 
   for crumb in split(a:bundle, "\n")
