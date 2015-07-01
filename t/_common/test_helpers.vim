@@ -1,7 +1,7 @@
 "
 " For testing this helper self.
 "
-let s:test_helper = {'foo': 'bar', 'baz': ['qux']}
+let s:test_helpers = {}
 function! test_helpers#scope()
   return s:
 endfunction
@@ -16,6 +16,31 @@ function! _capture(cmd, ...)
   return want_array ? split(crumb, "\n") : crumb
 endfunction
 
+"
+" Preserve/Refer/Set/Recover script local variable with dictionary.
+"
+" Param:  [String] value_name: local variable name for vspec#ref()
+" Param:  [Dict, String, 0, 1] subject: see below
+"           Dict    => Set (used as updating)
+"           String  => Refer (used as key for dict)
+"           0       => Preserve
+"           1       => Recover
+" Param:  [String] (a:1) used as name of stack if non-empty string is passed
+"           Note: If designate this at preserving, must designate same name in
+"                 other operation(Refer/Set/Recover).
+" Example:
+"   Preserve values at first.
+"     call _HandleLocalDict_('s:foo', 1)
+"   Set/Refer value.
+"     call _HandleLocalDict_('s:foo', {'bar': 'baz'})
+"     let x = _HandleLocalDict_('s:foo', 'bar')
+"   Recover at end of each test.
+"     call _HandleLocalDict_('s:foo', 0)
+" Note: For convenience, define wrapper function in each test file.
+"   function! s:HL(s)
+"     call _HandleLocalDict_('s:foo', s, '__long_specific_stack_name_here__')
+"   endfunction
+"
 function! _HandleLocalDict_(value_name, subject, ...)
   let stack_name_base = 'testing_common_helper_stack_registry'
   let param = a:0 ? a:1 : ''
@@ -23,7 +48,7 @@ function! _HandleLocalDict_(value_name, subject, ...)
     let stack_name_base = param
   endif
 
-  let stack_name = stack_name_base . '_' . split(value_name, ':')[-1]
+  let stack_name = stack_name_base . '_' . split(a:value_name, ':')[-1]
   let subject_type = type(a:subject)
   let local = Ref(a:value_name)
 
