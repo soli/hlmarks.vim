@@ -62,12 +62,11 @@ endfunction
 describe 'define()/undefine()'
 
   it 'should define signs as fixed format and undefine those definitions'
+    call s:ref_local(1)
+    call s:set_local('prefix', 'SLF_')
+
     let bundle_func = 's:definition_bundle'
-    let local_sign = Ref('s:sign')
     let total_def_amount = strlen(g:hlmarks_displaying_marks)
-    let orig_prefix = local_sign.prefix
-    let local_sign.prefix = 'SLF_'
-    call Set('s:sign', local_sign)
 
     call hlmarks#sign#define()
 
@@ -97,8 +96,7 @@ describe 'define()/undefine()'
 
     Expect len(extracted) == 0
 
-    let local_sign.prefix = orig_prefix
-    call Set('s:sign', local_sign)
+    call s:ref_local(0)
   end
 
 end
@@ -143,14 +141,12 @@ end
 describe 'reorder_spec()'
 
   before
+    call s:ref_local(1)
+    call s:set_local('prefix', 'SLF_')
+
     let g:__o_displaying_marks = g:hlmarks_displaying_marks
     let g:__o_sort_stacked_signs = g:hlmarks_sort_stacked_signs
     let g:__o_stacked_signs_order = g:hlmarks_stacked_signs_order
-
-    let local_sign = Ref('s:sign')
-    let g:__o_sign_prefix = local_sign.prefix
-    let local_sign.prefix = 'SLF_'
-    call Set('s:sign', local_sign)
 
     let g:__sign_spec_tmpl__ = {
       \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
@@ -165,15 +161,12 @@ describe 'reorder_spec()'
     let g:hlmarks_sort_stacked_signs = g:__o_sort_stacked_signs
     let g:hlmarks_stacked_signs_order = g:__o_stacked_signs_order
 
-    let local_sign = Ref('s:sign')
-    let local_sign.prefix = g:__o_sign_prefix
-    call Set('s:sign', local_sign)
-
     unlet g:__o_displaying_marks
     unlet g:__o_sort_stacked_signs
     unlet g:__o_stacked_signs_order
-    unlet g:__o_sign_prefix
     unlet g:__sign_spec_tmpl__
+
+    call s:ref_local(0)
   end
 
   it 'should not sort and signs of self are always placed under signs of others'
