@@ -20,10 +20,10 @@ describe 'numbers()'
 end
 
 
-describe 's:bundle()'
+describe 's:buffer_bundle()'
 
   it 'should return buffer list info as single string crumb'
-    let bundle = Call('s:bundle')
+    let bundle = Call('s:buffer_bundle')
 
     Expect type(bundle) == type('')
     Expect bundle != ''
@@ -32,11 +32,11 @@ describe 's:bundle()'
 end
 
 
-describe 's:extract_numbers()'
+describe 's:extract_buffer_number()'
 
-  it 'should extract more than one buffer numbers from strings by s:bundle() in startup'
-    let bundle = Call('s:bundle')
-    let extracted = Call('s:extract_numbers', bundle)
+  it 'should extract more than one buffer numbers from strings by s:buffer_bundle() in startup'
+    let bundle = Call('s:buffer_bundle')
+    let extracted = Call('s:extract_buffer_number', bundle)
 
     Expect type(extracted) == type([])
     Expect len(extracted) >= 1
