@@ -279,7 +279,6 @@ describe 's:extract_sign_specs'
     let g:__sign_spec_tmpl__ = {
       \ 'marks': [],
       \ 'others': [],
-      \ 'all': [],
       \ 'ids': [],
       \ 'order': []
       \ }
@@ -328,7 +327,6 @@ describe 's:extract_sign_specs'
     let expected = {
       \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
       \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
-      \ 'all':    [ [26, 'OTS_2'], [22, 'MYS_d'], [21, 'MYS_c'], [25, 'OTS_1'] ],
       \ 'ids':    [ 25, 21, 22, 26 ],
       \ 'order':  [ 0, 1, 1, 0 ]
       \ }
@@ -341,7 +339,6 @@ describe 's:extract_sign_specs'
     let expected = {
       \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
       \ 'others': [],
-      \ 'all':    [ [12, 'MYS_b'], [11, 'MYS_a'] ],
       \ 'ids':    [ 11, 12 ],
       \ 'order':  [ 1, 1 ]
       \ }
@@ -354,7 +351,6 @@ describe 's:extract_sign_specs'
     let expected = {
       \ 'marks':  [],
       \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
-      \ 'all':    [ [32, 'OTS_4'], [31, 'OTS_3'] ],
       \ 'ids':    [ 31, 32 ],
       \ 'order':  [ 0, 0 ]
       \ }
@@ -368,21 +364,18 @@ describe 's:extract_sign_specs'
       \ '1': {
         \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
         \ 'others': [],
-        \ 'all':    [ [12, 'MYS_b'], [11, 'MYS_a'] ],
         \ 'ids':    [ 11, 12 ],
         \ 'order':  [ 1, 1 ]
         \ },
       \ '2': {
         \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
         \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
-        \ 'all':    [ [26, 'OTS_2'], [22, 'MYS_d'], [21, 'MYS_c'], [25, 'OTS_1'] ],
         \ 'ids':    [ 25, 21, 22, 26 ],
         \ 'order':  [ 0, 1, 1, 0 ]
         \ },
       \ '3': {
         \ 'marks':  [],
         \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
-        \ 'all':    [ [32, 'OTS_4'], [31, 'OTS_3'] ],
         \ 'ids':    [ 31, 32 ],
         \ 'order':  [ 0, 0 ]
         \ }

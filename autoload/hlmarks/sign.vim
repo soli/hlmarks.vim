@@ -376,7 +376,6 @@ endfunction
 "          <line_no != 0>
 "           { 'marks':  [[id,name], ..] => sign units as mark's sign
 "             'others': (same sa above) => sign units as other's sign
-"             'all':    (same sa above) => all sign units on designated line
 "             'ids':    [id, id, ..]    => all id of signs
 "             'order':  [n, n, ..]      => order list by sign type,
 "                                          n = 1(mark's) or 0 (other's) }
@@ -389,7 +388,6 @@ function! s:extract_sign_specs(bundle, line_no, pattern)
   let sign_spec = {
     \ 'marks': [],
     \ 'others': [],
-    \ 'all': [],
     \ 'ids': [],
     \ 'order': []
     \ }
@@ -420,7 +418,6 @@ function! s:extract_sign_specs(bundle, line_no, pattern)
       call insert(sign_specs[line_no].order, 0)
     endif
 
-    call insert(sign_specs[line_no].all, sign)
     call add(sign_specs[line_no].ids, sign_id)
   endfor
 
