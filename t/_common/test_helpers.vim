@@ -95,11 +95,11 @@ endfunction
 " Register/Refer/Remove global variable with prefix.
 "
 " Param:  [String] prefix: strings that prepend to variable name
-" Param:  [Dict, String, 0] (a:1) see below
-"           Dict => register as global variable(g:PREFIX+key = value)
-"           String => refer value(g:PREFIX+arg)
-"           0 => remove all values that start with PREFIX from g:
-" Return: [Any] registered value(only if a:1 is string)
+" Param:  [Dict, String, 0] subject: see below
+"           Dict    => Register (g:prefix+key = value)
+"           String  => Refer (g:prefix+subject)
+"           0       => Remove
+" Return: [Any] registered value(only if subject is string)
 " Example:
 "   Register values(as many times as needed).
 "     call _Reg_('__t__', {'foo': 'bar', ...})
@@ -112,23 +112,22 @@ endfunction
 "     return _Reg_('__long_specific_prefix_here__', s)
 "   endfunction
 "
-function! _Reg_(prefix, ...)
-  if !a:0
-    throw 'Invalid argument.'
+function! _Reg_(prefix, subject)
+  let subject_type = type(a:subject)
 
   " Register
-  elseif type(a:1) == type({})
-    for [key, value] in items(a:1)
+  if subject_type == type({})
+    for [key, value] in items(a:subject)
       let g:{a:prefix}{key} = deepcopy(value, 1)
       unlet value
     endfor
 
   " Refer
-  elseif type(a:1) == type('')
-    return get(g:, a:prefix . a:1, '')
+  elseif subject_type == type('')
+    return get(g:, a:prefix . a:subject, '')
 
   " Remove
-  elseif type(a:1) == type(1) && a:1 == 0
+  elseif subject_type == type(1) && a:subject == 0
     for g_key in keys(g:)
       if stridx(g_key, a:prefix) == 0
         unlet g:{g_key}
@@ -138,8 +137,6 @@ function! _Reg_(prefix, ...)
   else
     throw 'Invalid argument.'
   endif
-
-  return 0
 endfunction
 
 "
