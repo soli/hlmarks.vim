@@ -6,6 +6,13 @@ function! test_helpers#scope()
   return s:
 endfunction
 
+"
+" Capture result of execution command.
+"
+" Param:  [String] cmd: command
+" Param:  [Number] (a:1) specifier for result type
+" Return: [String, List] captured strings(a:1=0) or list(a:1=1/default)
+"
 function! _capture(cmd, ...)
   redir => crumb
     silent execute a:cmd
@@ -23,11 +30,12 @@ endfunction
 " Param:  [Dict, String, 0, 1] subject: see below
 "           Dict    => Set (used as updating)
 "           String  => Refer (used as key for dict)
-"           0       => Preserve
-"           1       => Recover
+"           0       => Recover
+"           1       => Preserve
 " Param:  [String] (a:1) used as name of stack if non-empty string is passed
 "           Note: If designate this at preserving, must designate same name in
 "                 other operation(Refer/Set/Recover).
+" Return: [Any] value in local variable(only if subject is string)
 " Example:
 "   Preserve values at first.
 "     call _HandleLocalDict_('s:foo', 1)
@@ -91,7 +99,7 @@ endfunction
 "           Dict => register as global variable(g:PREFIX+key = value)
 "           String => refer value(g:PREFIX+arg)
 "           0 => remove all values that start with PREFIX from g:
-" Retuen: [Any] registered value(only if a:1 is string)
+" Return: [Any] registered value(only if a:1 is string)
 " Example:
 "   Register values(as many times as needed).
 "     call _Reg_('__t__', {'foo': 'bar', ...})
@@ -138,14 +146,15 @@ endfunction
 " Preserve/Recover global variable starts with designated prefix.
 "
 " Param:  [String, 0] subject: see below
-"           String => Assumed prefix of variable name and preserve them.
-"           0 => Recover stashed variables.
+"           String  => Preserve (used for prefix that matches in front of variable)
+"           0       => Recover
 " Param:  [String] (a:1) used as name of stash if non-empty string is passed
 "           Note that if designate this, must designate same name in recover.
 " Example:
 "   Preserve values at first.
 "     call _Stash_('plugin_foo_')
-"   (..change value..)
+"   Change value.
+"     let g:plugin_foo_x = 'bar'
 "   Recover at end of each test.
 "     call _Stash_(0)
 " Note: If use specific stash name, define wrapper function in each test file.
@@ -183,5 +192,4 @@ function! _Stash_(subject, ...)
     throw 'Invalid argument.'
   endif
 endfunction
-
 
