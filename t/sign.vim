@@ -122,10 +122,10 @@ describe 'reorder_spec()'
 end
 
 
-describe 's:fix_format()'
+describe 's:fix_sign_format()'
 
   before
-    let g:__func__ = 's:fix_format'
+    let g:__func__ = 's:fix_sign_format'
     let g:__ms__ = '%m'
   end
 
@@ -167,7 +167,7 @@ describe 's:fix_format()'
 end
 
 
-describe 's:sign_names_sorter()'
+describe 's:name_sorter()'
 
   it 'should sort according to list of character order'
     SKIP 'Currently unable to test.'
@@ -176,7 +176,7 @@ describe 's:sign_names_sorter()'
 end
 
 
-describe 's:defined_bundle()'
+describe 's:definition_bundle()'
 
   before
     let g:__signs__ = s:toggle_sign_defs(1)
@@ -189,7 +189,7 @@ describe 's:defined_bundle()'
   end
 
   it 'should return currently defined signs as single string crumb'
-    let bundle = Call('s:defined_bundle')
+    let bundle = Call('s:definition_bundle')
 
     Expect type(bundle) == type('') 
     Expect bundle != '' 
@@ -230,11 +230,11 @@ describe 's:extract_chars()'
 end
 
 
-describe 's:extract_defined_names()'
+describe 's:extract_definition_names()'
 
   before
-    let g:__func__ = 's:extract_defined_names'
-    let g:__bundle_func__ = 's:defined_bundle'
+    let g:__func__ = 's:extract_definition_names'
+    let g:__bundle_func__ = 's:definition_bundle'
     let g:__signs__ = s:toggle_sign_defs(1)
   end
 
@@ -246,7 +246,7 @@ describe 's:extract_defined_names()'
     unlet g:__signs__
   end
 
-  it 'should extarct sign names from strings by s:defined_bundle()'
+  it 'should extarct sign names from strings by s:definition_bundle()'
     let bundle = Call(g:__bundle_func__)
     let names = Call(g:__func__, bundle, g:__signs__[0])
 
@@ -271,11 +271,11 @@ describe 's:extract_defined_names()'
 end
 
 
-describe 's:extract_placed_specs'
+describe 's:extract_sign_specs'
 
   before
-    let g:__func__ = 's:extract_placed_specs'
-    let g:__bundle_func__ = 's:placed_bundle'
+    let g:__func__ = 's:extract_sign_specs'
+    let g:__bundle_func__ = 's:sign_bundle'
     let g:__sign_spec_tmpl__ = {
       \ 'marks': [],
       \ 'others': [],
@@ -394,11 +394,11 @@ describe 's:extract_placed_specs'
 end
 
 
-describe 's:extract_placed_ids()'
+describe 's:extract_sign_ids()'
 
   before
-    let g:__func__ = 's:extract_placed_ids'
-    let g:__bundle_func__ = 's:placed_bundle'
+    let g:__func__ = 's:extract_sign_ids'
+    let g:__bundle_func__ = 's:sign_bundle'
     let g:__signs__ = s:toggle_sign_defs(1)
     let g:__ids__ = s:toggle_sign_placement(g:__signs__)
   end
@@ -423,7 +423,7 @@ describe 's:extract_placed_ids()'
     Expect len(ids) == 0
   end
 
-  it 'should extract id of sign matched passed pattern from strings by s:placed_bundle()'
+  it 'should extract id of sign matched passed pattern from strings by s:sign_bundle()'
     let bundle = Call(g:__bundle_func__, bufnr('%'))
     let ids = Call(g:__func__, bundle, g:__signs__[0])
 
@@ -483,28 +483,28 @@ describe 's:generate_id()'
 end
 
 
-describe 's:name_with_mark()'
+describe 's:sign_name_of()'
 
   it 'should return sign name embeded mark name'
-    Expect Call('s:name_with_mark', 'a') == (Ref('s:sign')['prefix']).'a'
+    Expect Call('s:sign_name_of', 'a') == (Ref('s:sign')['prefix']).'a'
   end
 
 end
 
 
-describe 's:pattern()'
+describe 's:sign_pattern()'
 
-  it 'should return pattern for searching sign'
-    Expect Call('s:pattern') == '\C^'.(Ref('s:sign'))['prefix']
+  it 'should return sign_pattern for searching sign'
+    Expect Call('s:sign_pattern') == '\C^'.(Ref('s:sign'))['prefix']
   end
 
 end
 
 
-describe 's:placed_bundle()'
+describe 's:sign_bundle()'
 
   before
-    let g:__func__ = 's:placed_bundle'
+    let g:__func__ = 's:sign_bundle'
     let g:__signs__ = s:toggle_sign_defs(1)
     let g:__ids__ = s:toggle_sign_placement(g:__signs__)
   end
@@ -542,10 +542,10 @@ describe 's:placed_bundle()'
 end
 
 
-describe 's:to_mark_name()'
+describe 's:mark_name_of()'
 
   it 'should return only mark name from sign name'
-    Expect Call('s:to_mark_name', (Ref('s:sign'))['prefix'].'a') == 'a'
+    Expect Call('s:mark_name_of', (Ref('s:sign'))['prefix'].'a') == 'a'
   end
 
 end
