@@ -297,21 +297,6 @@ endfunction
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 "
-" (Sorter function) Sort sign names with defined order.
-"
-" Param:  [List] a:,b: sign unit([id, name])
-" Return: [Number] sort result
-" Note:   This sort function is used with following dictionary.
-"          { 'seq': [String] sequence of character that indicates sort order }
-"
-function! s:name_sorter(a, b) dict
-  let a_idx = stridx(self.seq, s:mark_name_of(a:a[1]))
-  let b_idx = stridx(self.seq, s:mark_name_of(a:b[1]))
-
-  return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
-endfunction
-
-"
 " Get strings of sign definitions.
 "
 " Return: [String] bundle that contains sign definitions
@@ -353,6 +338,31 @@ function! s:extract_definition_names(bundle, pattern)
   endfor
 
   return defined_names
+endfunction
+
+"
+" Extract sign id from bundle that is taken from 'sign place' command.
+"
+" Param:  [String] bundle: bundle of placed signs
+" Param:  [String] pattern: pattern that matches name
+" Return: [List] list of extracted sign id
+" Note:   Duplication of id is considered.
+"
+function! s:extract_sign_ids(bundle, pattern)
+  let sign_ids = []
+
+  for crumb in split(a:bundle, "\n")
+    if stridx(crumb, '=') < 0
+      continue
+    endif
+
+    let matched = matchlist(crumb, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(\S+)$')
+    if !empty(matched) && match(matched[3], a:pattern) >= 0
+      call add(sign_ids, str2nr(matched[2], 10))
+    endif
+  endfor
+
+  return sign_ids
 endfunction
 
 "
@@ -417,31 +427,6 @@ function! s:extract_sign_specs(bundle, line_no, pattern)
   return a:line_no == 0
     \ ? sign_specs
     \ : (has_key(sign_specs, a:line_no) ? sign_specs[a:line_no] : sign_spec)
-endfunction
-
-"
-" Extract sign id from bundle that is taken from 'sign place' command.
-"
-" Param:  [String] bundle: bundle of placed signs
-" Param:  [String] pattern: pattern that matches name
-" Return: [List] list of extracted sign id
-" Note:   Duplication of id is considered.
-"
-function! s:extract_sign_ids(bundle, pattern)
-  let sign_ids = []
-
-  for crumb in split(a:bundle, "\n")
-    if stridx(crumb, '=') < 0
-      continue
-    endif
-
-    let matched = matchlist(crumb, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(\S+)$')
-    if !empty(matched) && match(matched[3], a:pattern) >= 0
-      call add(sign_ids, str2nr(matched[2], 10))
-    endif
-  endfor
-
-  return sign_ids
 endfunction
 
 "
@@ -510,22 +495,28 @@ function! s:generate_id()
 endfunction
 
 "
-" Convert mark name to sign name
+" Convert sign name to mark name.
 "
-" Param:  [String] mark_name: mark name
-" Return: [String] sign name
+" Param:  [String] sign_name: sign name
+" Return: [String] mark name
 "
-function! s:sign_name_of(mark_name)
-  return s:sign.prefix . a:mark_name
+function! s:mark_name_of(sign_name)
+  return substitute(a:sign_name, s:sign.prefix, '', '')
 endfunction
 
 "
-" Get search pattern with sign.
+" (Sorter function) Sort sign names with defined order.
 "
-" Return: [String] pattern
+" Param:  [List] a:,b: sign unit([id, name])
+" Return: [Number] sort result
+" Note:   This sort function is used with following dictionary.
+"          { 'seq': [String] sequence of character that indicates sort order }
 "
-function! s:sign_pattern()
-  return '\C^' . s:sign.prefix
+function! s:name_sorter(a, b) dict
+  let a_idx = stridx(self.seq, s:mark_name_of(a:a[1]))
+  let b_idx = stridx(self.seq, s:mark_name_of(a:b[1]))
+
+  return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
 endfunction
 
 "
@@ -548,13 +539,22 @@ function! s:sign_bundle(buffer_no)
 endfunction
 
 "
-" Convert sign name to mark name.
+" Convert mark name to sign name
 "
-" Param:  [String] sign_name: sign name
-" Return: [String] mark name
+" Param:  [String] mark_name: mark name
+" Return: [String] sign name
 "
-function! s:mark_name_of(sign_name)
-  return substitute(a:sign_name, s:sign.prefix, '', '')
+function! s:sign_name_of(mark_name)
+  return s:sign.prefix . a:mark_name
+endfunction
+
+"
+" Get search pattern with sign.
+"
+" Return: [String] pattern
+"
+function! s:sign_pattern()
+  return '\C^' . s:sign.prefix
 endfunction
 
 
