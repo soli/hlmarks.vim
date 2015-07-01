@@ -5,10 +5,15 @@ runtime! plugin/hlmarks.vim
 call vspec#hint({'scope': 'hlmarks#sign#scope()', 'sid': 'hlmarks#sign#sid()'})
 
 
+function! s:testing_prefix()
+  return '__test__'
+endfunction
+
+
 function! s:toggle_sign_defs(define)
   let sign_names = []
   for name in ['foo', 'bar', 'baz']
-    let sign_name = '__test__'.name
+    let sign_name = s:testing_prefix().name
     execute 'sign '.(a:define ? '' : 'un').'define '.sign_name
     call add(sign_names, sign_name)
   endfor
@@ -33,6 +38,106 @@ function! s:toggle_sign_placement(sign_names)
 
   return sign_ids
 endfunction
+
+
+function! s:ref_local(prepare)
+  if a:prepare == 1
+    let local = Ref('s:sign')
+    let g:__local_orig__ = deepcopy(local, 1)
+    let g:__local__ = deepcopy(local, 1)
+  else
+    call Set('s:sign', g:__local_orig__)
+    unlet g:__local_orig__
+    unlet g:__local__
+  endif
+endfunction
+
+
+function! s:set_local(key, value)
+  let g:__local__[a:key] = a:value
+  call Set('s:sign', g:__local__)
+endfunction
+
+
+describe 'define()/undefine()'
+
+  it 'should define signs as fixed format and undefine those definitions'
+    let bundle_func = 's:definition_bundle'
+    let local_sign = Ref('s:sign')
+    let total_def_amount = strlen(g:hlmarks_displaying_marks)
+    let orig_prefix = local_sign.prefix
+    let local_sign.prefix = 'SLF_'
+    call Set('s:sign', local_sign)
+
+    call hlmarks#sign#define()
+
+    let bundle = Call(bundle_func)
+    let extracted = []
+    for crumb in split(bundle, "\n")
+      if stridx(crumb, 'SLF_') >= 0
+        call add(extracted, crumb)
+      endif
+    endfor
+
+    Expect len(extracted) == total_def_amount
+
+    for crumb in extracted
+      Expect crumb =~ '\vSLF_. .+ linehl\=SLF_L_.{-1,} texthl\=SLF_G_.+'
+    endfor
+
+    call hlmarks#sign#undefine()
+
+    let bundle = Call(bundle_func)
+    let extracted = []
+    for crumb in split(bundle, "\n")
+      if stridx(crumb, 'SLF_') >= 0
+        call add(extracted, crumb)
+      endif
+    endfor
+
+    Expect len(extracted) == 0
+
+    let local_sign.prefix = orig_prefix
+    call Set('s:sign', local_sign)
+  end
+
+end
+
+
+describe 'generate_state()'
+
+  it 'should generate current sign spec'
+    call s:ref_local(1)
+    let sign_names = s:toggle_sign_defs(1)
+    let sign_ids = s:toggle_sign_placement(sign_names)
+
+    call s:set_local('prefix', s:testing_prefix())
+
+    let specs = hlmarks#sign#generate_state()
+    let extracted = []
+    for [line_no, spec] in items(specs)
+      if line_no == 1
+        call add(extracted, spec)
+      endif
+    endfor
+
+    Expect len(extracted) == 1
+
+    unlet spec
+    let extracted_names = []
+    for spec in extracted[0].marks
+      call add(extracted_names, spec[1])
+    endfor
+    Expect extracted_names == sign_names
+
+    Expect extracted[0].ids == sign_ids
+
+    call s:toggle_sign_placement([])
+    call s:toggle_sign_defs(1)
+    call s:ref_local(0)
+  end
+
+end
 
 
 describe 'reorder_spec()'
