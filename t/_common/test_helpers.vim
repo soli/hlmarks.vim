@@ -13,7 +13,7 @@ endfunction
 " Param:  [Number] (a:1) specifier for result type
 " Return: [String, List] captured strings(a:1=0) or list(a:1=1/default)
 "
-function! _capture(cmd, ...)
+function! _Grab_(cmd, ...)
   redir => crumb
     silent execute a:cmd
   redir END
