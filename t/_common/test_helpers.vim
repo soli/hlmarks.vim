@@ -2,7 +2,7 @@
 " For testing this helper self.
 "
 let s:test_helper = {'foo': 'bar', 'baz': ['qux']}
-function! test_helper#scope()
+function! test_helpers#scope()
   return s:
 endfunction
 
