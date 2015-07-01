@@ -5,6 +5,17 @@ runtime! plugin/hlmarks.vim
 call vspec#hint({'scope': 'hlmarks#sign#scope()', 'sid': 'hlmarks#sign#sid()'})
 
 
+
+function! s:R(subject)
+  return _Reg_('__t__', subject)
+endfunction
+
+
+function! s:S(subject)
+  call _Stash_(subject)
+endfunction
+
+
 function! s:testing_prefix()
   return '__test__'
 endfunction
