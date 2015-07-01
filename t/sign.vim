@@ -180,7 +180,7 @@ describe 'get_cache()'
 end
 
 
-describe 'is_valid_case()'
+describe 'should_place()'
 
   before
     let g:__o_ignore_buffer_type = g:hlmarks_ignore_buffer_type
@@ -200,57 +200,57 @@ describe 'is_valid_case()'
     let g:hlmarks_ignore_buffer_type = ''
 
     set buftype=help
-    Expect hlmarks#sign#is_valid_case() to_be_true
+    Expect hlmarks#sign#should_place() to_be_true
 
     set buftype=quickfix
-    Expect hlmarks#sign#is_valid_case() to_be_true
+    Expect hlmarks#sign#should_place() to_be_true
 
     set pvw
-    Expect hlmarks#sign#is_valid_case() to_be_true
+    Expect hlmarks#sign#should_place() to_be_true
 
     set ro
-    Expect hlmarks#sign#is_valid_case() to_be_true
+    Expect hlmarks#sign#should_place() to_be_true
 
     set modifiable
-    Expect hlmarks#sign#is_valid_case() to_be_true
+    Expect hlmarks#sign#should_place() to_be_true
   end
 
   it 'should return false if all buffer type/state are banned'
     let g:hlmarks_ignore_buffer_type = 'hqprm'
 
     set buftype=help
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set buftype=quickfix
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set pvw
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set ro
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set modifiable
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
   end
 
   it 'should return false if all buffer type/state are banned with upper-case letler'
     let g:hlmarks_ignore_buffer_type = 'HQPRM'
 
     set buftype=help
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set buftype=quickfix
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set pvw
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set ro
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
 
     set modifiable
-    Expect hlmarks#sign#is_valid_case() to_be_false
+    Expect hlmarks#sign#should_place() to_be_false
   end
 
 end

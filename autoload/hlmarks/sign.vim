@@ -111,21 +111,6 @@ function! hlmarks#sign#get_cache()
 endfunction
 
 "
-" Determine whether current buffer state/type is valid for placing sign or not.
-"
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#is_valid_case()
-  let ignore_buffer_type = g:hlmarks_ignore_buffer_type
-  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    == 'help'    )
-    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    == 'quickfix')
-    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        == 1         )
-    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   == 1         )
-    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable == 0         )
-    \ ? 0 : 1
-endfunction
-
-"
 " Determine whether should place sign for a mark or not.
 "
 " Param:  [String] mark: mark name
@@ -270,6 +255,21 @@ function! hlmarks#sign#reorder_spec(sign_spec)
   let sign_spec.ordered = signs
 
   return sign_spec
+endfunction
+
+"
+" Determine whether current buffer state/type is valid for placing sign or not.
+"
+" Return: [Number] determination(0/1)
+"
+function! hlmarks#sign#should_place()
+  let ignore_buffer_type = g:hlmarks_ignore_buffer_type
+  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    == 'help'    )
+    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    == 'quickfix')
+    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        == 1         )
+    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   == 1         )
+    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable == 0         )
+    \ ? 0 : 1
 endfunction
 
 "

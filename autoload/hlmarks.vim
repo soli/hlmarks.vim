@@ -155,7 +155,7 @@ function! hlmarks#set_mark(...)
   "    Remove mark even if passed mark should not be signed.
   if line_no == target_line && buffer_no == bufnr('%')
     if hlmarks#mark#can_remove(mark)
-      if hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#is_valid_case()
+      if hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#should_place()
         call hlmarks#sign#remove_on_mark(mark)
         call hlmarks#mark#remove(mark)
         call hlmarks#sign#set_cache()
@@ -169,7 +169,7 @@ function! hlmarks#set_mark(...)
   endif
 
   " 2) Set mark even if passed mark should not be signed.
-  if !(hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#is_valid_case())
+  if !(hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#should_place())
     call hlmarks#mark#set(mark)
     return
   endif
@@ -308,7 +308,7 @@ endfunction
 " Note:   Leave echoes for further debug.
 "
 function! s:update_signs()
-  if !hlmarks#sign#is_valid_case()
+  if !hlmarks#sign#should_place()
     return
   endif
 
