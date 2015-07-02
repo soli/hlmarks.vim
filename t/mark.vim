@@ -88,5 +88,24 @@ describe 's:bundle()'
     call s:place_mark(0)
   end
 
+  it 'should return correct info if mixed(normal and invisible) marks are designated'
+    let mark_names = s:place_mark()
+    let invisibles = ['(', ')', '{', '}']
+    let bundle = Call(s:Reg('func'), join((mark_names + invisibles), ''))
+
+    Expect type(bundle) == type('')
+    Expect bundle !~? 'error'
+
+    for name in mark_names
+      Expect bundle =~# '\v'.name.'\s+1'
+    endfor
+
+    for name in invisibles
+      Expect bundle =~# '\v'.escape(name, join(invisibles, '')).'\s+1.{-1,}\(invisible\)'
+    endfor
+
+    call s:place_mark(0)
+  end
+
 end
 
