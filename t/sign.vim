@@ -218,6 +218,7 @@ describe 'place()'
       Expect bundle =~ name
     endfor
 
+    call s:place_sign(0)
     call s:define_sign(0)
   end
 
@@ -244,6 +245,7 @@ describe 'place_on_mark()'
   end
 
   after
+    call s:place_sign(0)
     call s:define_sign(0)
     call s:Reg(0)
     call s:Local(0)
