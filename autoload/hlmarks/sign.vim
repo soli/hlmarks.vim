@@ -195,11 +195,11 @@ endfunction
 "
 function! hlmarks#sign#should_place()
   let ignore_buffer_type = g:hlmarks_ignore_buffer_type
-  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    == 'help'    )
-    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    == 'quickfix')
-    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        == 1         )
-    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   == 1         )
-    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable == 0         )
+  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    ==? 'help'    )
+    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    ==? 'quickfix')
+    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        ==  1         )
+    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   ==  1         )
+    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable ==  0         )
     \ ? 0 : 1
 endfunction
 
