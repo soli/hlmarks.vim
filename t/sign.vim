@@ -6,14 +6,21 @@ call vspec#hint({'scope': 'hlmarks#sign#scope()', 'sid': 'hlmarks#sign#sid()'})
 
 
 
-function! s:R(subject)
-  return _Reg_('__t__', subject)
+function! s:Reg(subject)
+  return _Reg_('__t__', a:subject)
 endfunction
 
 
-function! s:S(subject)
+function! s:StashGlobal(subject)
+  let subject = a:subject != 0 ? 'hlmarks_' : 0
   call _Stash_(subject)
 endfunction
+
+
+function! s:Local(subject)
+  call _HandleLocalDict_('s:sign', a:subject)
+endfunction
+
 
 
 function! s:testing_prefix()
@@ -51,30 +58,14 @@ function! s:toggle_sign_placement(sign_names)
 endfunction
 
 
-function! s:ref_local(prepare)
-  if a:prepare == 1
-    let local = Ref('s:sign')
-    let g:__local_orig__ = deepcopy(local, 1)
-    let g:__local__ = deepcopy(local, 1)
-  else
-    call Set('s:sign', g:__local_orig__)
-    unlet g:__local_orig__
-    unlet g:__local__
-  endif
-endfunction
 
-
-function! s:set_local(key, value)
-  let g:__local__[a:key] = a:value
-  call Set('s:sign', g:__local__)
-endfunction
 
 
 describe 'define()/undefine()'
 
   it 'should define signs as fixed format and undefine those definitions'
-    call s:ref_local(1)
-    call s:set_local('prefix', 'SLF_')
+    call s:Local(1)
+    call s:Local({'prefix': 'SLF_'})
 
     let bundle_func = 's:definition_bundle'
     let total_def_amount = strlen(g:hlmarks_displaying_marks)
@@ -107,7 +98,7 @@ describe 'define()/undefine()'
 
     Expect len(extracted) == 0
 
-    call s:ref_local(0)
+    call s:Local(0)
   end
 
 end
@@ -116,11 +107,10 @@ end
 describe 'generate_state()'
 
   it 'should generate current sign spec'
-    call s:ref_local(1)
+    call s:Local(1)
+    call s:Local({'prefix': s:testing_prefix()})
     let sign_names = s:toggle_sign_defs(1)
     let sign_ids = s:toggle_sign_placement(sign_names)
-
-    call s:set_local('prefix', s:testing_prefix())
 
     let specs = hlmarks#sign#generate_state()
     let extracted = []
@@ -143,7 +133,7 @@ describe 'generate_state()'
 
     call s:toggle_sign_placement([])
     call s:toggle_sign_defs(1)
-    call s:ref_local(0)
+    call s:Local(0)
   end
 
 end
@@ -159,11 +149,10 @@ describe 'get_cache()'
   end
 
   it 'should return cache that is set by set_cache()'
-    call s:ref_local(1)
+    call s:Local(1)
+    call s:Local({'prefix': s:testing_prefix()})
     let sign_names = s:toggle_sign_defs(1)
     let sign_ids = s:toggle_sign_placement(sign_names)
-
-    call s:set_local('prefix', s:testing_prefix())
 
     call hlmarks#sign#set_cache()
 
@@ -185,7 +174,7 @@ describe 'get_cache()'
 
     call s:toggle_sign_placement([])
     call s:toggle_sign_defs(1)
-    call s:ref_local(0)
+    call s:Local(0)
   end
 
 end
@@ -221,32 +210,21 @@ end
 describe 'place_on_mark()'
 
   before
-    call s:ref_local(1)
-    let g:__signs__ = s:toggle_sign_defs(1)
-
-    call s:set_local('prefix', s:testing_prefix())
-
-    let g:__o_sort_stacked_signs = g:hlmarks_sort_stacked_signs
-    let g:__o_stacked_signs_order = g:hlmarks_stacked_signs_order
-
-    let g:__bundle_func__ = 's:sign_bundle'
-    let g:__extract_func__ = 's:extract_sign_specs'
+    call s:StashGlobal(1)
+    call s:Local(1)
+    call s:Local({'prefix': s:testing_prefix()})
+    call s:Reg({
+      \ 'signs': s:toggle_sign_defs(1),
+      \ 'bundle_func': 's:sign_bundle',
+      \ 'extract_func': 's:extract_sign_specs',
+      \})
   end
 
   after
-    let g:hlmarks_sort_stacked_signs = g:__o_sort_stacked_signs
-    let g:hlmarks_stacked_signs_order = g:__o_stacked_signs_order
-
-    unlet g:__o_sort_stacked_signs
-    unlet g:__o_stacked_signs_order
-
-    unlet g:__bundle_func__
-    unlet g:__extract_func__
-
-    unlet g:__signs__
-
     call s:toggle_sign_defs(0)
-    call s:ref_local(0)
+    call s:Reg(0)
+    call s:Local(0)
+    call s:StashGlobal(0)
   end
 
 
@@ -256,13 +234,15 @@ describe 'place_on_mark()'
 
     call hlmarks#sign#place_on_mark(1, 'foo')
 
-    let bundle = Call(g:__bundle_func__)
+    let bundle = Call(s:Reg('bundle_func'))
     let prefix = s:testing_prefix()
-    let spec = Call(g:__extract_func__, bundle, 1, prefix)
+    let spec = Call(s:Reg('extract_func'), bundle, 1, prefix)
 
     Expect len(spec) != 0
     Expect len(spec.marks) == 1
-    Expect index(g:__signs__, spec.marks[0][1]) >= 0
+
+    let signs = s:Reg('signs')
+    Expect index(signs, spec.marks[0][1]) >= 0
   end
 
 end
@@ -271,17 +251,15 @@ end
 describe 'should_place()'
 
   before
-    let g:__o_ignore_buffer_type = g:hlmarks_ignore_buffer_type
+    call s:StashGlobal(1)
 
     new
   end
 
   after
-    let g:hlmarks_ignore_buffer_type = g:__o_ignore_buffer_type
-
-    unlet g:__o_ignore_buffer_type
-
     close!
+
+    call s:StashGlobal(0)
   end
 
   it 'should return true if all buffer type/state are permitted'
@@ -347,13 +325,11 @@ end
 describe 'should_place_on_mark()'
 
   before
-    let g:__o_displaying_marks = g:hlmarks_displaying_marks
+    call s:StashGlobal(1)
   end
 
   after
-    let g:hlmarks_displaying_marks = g:__o_displaying_marks
-
-    unlet g:__o_displaying_marks
+    call s:StashGlobal(0)
   end
 
   it 'should return true if passed mark is in list'
@@ -374,32 +350,22 @@ end
 describe 'reorder_spec()'
 
   before
-    call s:ref_local(1)
-    call s:set_local('prefix', 'SLF_')
-
-    let g:__o_displaying_marks = g:hlmarks_displaying_marks
-    let g:__o_sort_stacked_signs = g:hlmarks_sort_stacked_signs
-    let g:__o_stacked_signs_order = g:hlmarks_stacked_signs_order
-
-    let g:__sign_spec_tmpl__ = {
+    call s:StashGlobal(1)
+    call s:Local(1)
+    call s:Local({'prefix': 'SLF_'})
+    call s:Reg({'sign_spec_tmpl': {
       \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
       \ 'others': [ [21, 'OTS_2'], [20, 'OTS_1'] ],
       \ 'order':  [ 1, 0, 0, 1 ]
-      \ }
+      \ }})
+
     let g:hlmarks_displaying_marks = 'ba'
   end
 
   after
-    let g:hlmarks_displaying_marks = g:__o_displaying_marks
-    let g:hlmarks_sort_stacked_signs = g:__o_sort_stacked_signs
-    let g:hlmarks_stacked_signs_order = g:__o_stacked_signs_order
-
-    unlet g:__o_displaying_marks
-    unlet g:__o_sort_stacked_signs
-    unlet g:__o_stacked_signs_order
-    unlet g:__sign_spec_tmpl__
-
-    call s:ref_local(0)
+    call s:Reg(0)
+    call s:Local(0)
+    call s:StashGlobal(0)
   end
 
   it 'should not sort and signs of self are always placed under signs of others'
@@ -407,7 +373,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 0
     let expected = [ [10, 'SLF_a'], [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
   it 'should sort and signs of self are always placed under signs of others'
@@ -415,7 +382,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 0
     let expected = [ [11, 'SLF_b'], [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
   it 'should not sort and signs of self/others are placed same order'
@@ -423,7 +391,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 1
     let expected = [ [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
   it 'should sort and signs of self/others are placed same order'
@@ -431,7 +400,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 1
     let expected = [ [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
   it 'should not sort and signs of self are always placed above signs of others'
@@ -439,7 +409,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 2
     let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'], [11, 'SLF_b'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
   it 'should sort and signs of self are always placed above signs of others'
@@ -447,7 +418,8 @@ describe 'reorder_spec()'
     let g:hlmarks_stacked_signs_order = 2
     let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'], [10, 'SLF_a'] ]
 
-    Expect hlmarks#sign#reorder_spec(g:__sign_spec_tmpl__).ordered == expected
+    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
 end
@@ -456,43 +428,59 @@ end
 describe 's:fix_sign_format()'
 
   before
-    let g:__func__ = 's:fix_sign_format'
-    let g:__ms__ = '%m'
+    call s:Reg({
+      \ 'func': 's:fix_sign_format',
+      \ 'ms': '%m'
+      \ })
   end
 
   after
-    unlet g:__func__
-    unlet g:__ms__
+    call s:Reg(0)
   end
 
   it 'should return defualt format if passed empty'
-    Expect Call(g:__func__, '', g:__ms__) ==# g:__ms__
+    let func_name = s:Reg('func')
+    let ms = s:Reg('ms')
+
+    Expect Call(func_name, '', ms) ==# ms
   end
 
   it 'should append mark specifier in front if specifier not exits and truncate if needed'
-    Expect Call(g:__func__, '>', g:__ms__) ==# g:__ms__.'>'
-    Expect Call(g:__func__, '>=', g:__ms__) ==# g:__ms__.'>'
+    let func_name = s:Reg('func')
+    let ms = s:Reg('ms')
+
+    Expect Call(func_name, '>', ms) ==# ms.'>'
+    Expect Call(func_name, '>=', ms) ==# ms.'>'
   end
 
   it 'should pass through if passed correct valaue'
-    Expect Call(g:__func__, g:__ms__, g:__ms__) ==# g:__ms__
-    Expect Call(g:__func__, g:__ms__.'>', g:__ms__) ==# g:__ms__.'>'
-    Expect Call(g:__func__, '>'.g:__ms__, g:__ms__) ==# '>'.g:__ms__
+    let func_name = s:Reg('func')
+    let ms = s:Reg('ms')
+
+    Expect Call(func_name, ms, ms) ==# ms
+    Expect Call(func_name, ms.'>', ms) ==# ms.'>'
+    Expect Call(func_name, '>'.ms, ms) ==# '>'.ms
   end
 
   it 'should truncate from end if passed exceeded value'
-    Expect Call(g:__func__, g:__ms__.'>X', g:__ms__) ==# g:__ms__.'>'
-    Expect Call(g:__func__, '>X'.g:__ms__, g:__ms__) ==# '>'.g:__ms__
-    Expect Call(g:__func__, '>'.g:__ms__.'X', g:__ms__) ==# '>'.g:__ms__
+    let func_name = s:Reg('func')
+    let ms = s:Reg('ms')
+
+    Expect Call(func_name, ms.'>X', ms) ==# ms.'>'
+    Expect Call(func_name, '>X'.ms, ms) ==# '>'.ms
+    Expect Call(func_name, '>'.ms.'X', ms) ==# '>'.ms
   end
 
   it 'should compact mark specifier if passed two or more mark specifier'
-    Expect Call(g:__func__, g:__ms__.g:__ms__, g:__ms__) ==# g:__ms__
-    Expect Call(g:__func__, g:__ms__.g:__ms__.'>', g:__ms__) ==# g:__ms__.'>'
-    Expect Call(g:__func__, '>'.g:__ms__.g:__ms__, g:__ms__) ==# '>'.g:__ms__
-    Expect Call(g:__func__, g:__ms__.'>'.g:__ms__, g:__ms__) ==# g:__ms__.'>'
-    Expect Call(g:__func__, '>'.g:__ms__.'X'.g:__ms__, g:__ms__) ==# '>'.g:__ms__
-    Expect Call(g:__func__, g:__ms__.'>'.g:__ms__.'X', g:__ms__) ==# g:__ms__.'>'
+    let func_name = s:Reg('func')
+    let ms = s:Reg('ms')
+
+    Expect Call(func_name, ms.ms, ms) ==# ms
+    Expect Call(func_name, ms.ms.'>', ms) ==# ms.'>'
+    Expect Call(func_name, '>'.ms.ms, ms) ==# '>'.ms
+    Expect Call(func_name, ms.'>'.ms, ms) ==# ms.'>'
+    Expect Call(func_name, '>'.ms.'X'.ms, ms) ==# '>'.ms
+    Expect Call(func_name, ms.'>'.ms.'X', ms) ==# ms.'>'
   end
 
 end
@@ -510,21 +498,21 @@ end
 describe 's:definition_bundle()'
 
   before
-    let g:__signs__ = s:toggle_sign_defs(1)
+    call s:Reg({'signs': s:toggle_sign_defs(1)})
   end
 
   after
     call s:toggle_sign_defs(0)
-
-    unlet g:__signs__
+    call s:Reg(0)
   end
 
   it 'should return currently defined signs as single string crumb'
     let bundle = Call('s:definition_bundle')
+    let signs = s:Reg('signs')
 
     Expect type(bundle) == type('') 
     Expect bundle != '' 
-    Expect bundle =~# g:__signs__[0]
+    Expect bundle =~# signs[0]
   end
 
 end
@@ -533,29 +521,31 @@ end
 describe 's:extract_chars()'
 
   before
-    let g:__func__ = 's:extract_chars'
+    call s:Reg({'func': 's:extract_chars'})
   end
 
   after
-    unlet g:__func__
+    call s:Reg(0)
   end
 
   it 'should extract designated character class from passed strings'
     let target = 'ABCdef123<>.[]'
+    let func_name = s:Reg('func')
 
-    Expect Call(g:__func__, 'lower', target) == 'def'
-    Expect Call(g:__func__, 'upper', target) == 'ABC'
-    Expect Call(g:__func__, 'number', target) == '123'
-    Expect Call(g:__func__, 'symbol', target) == '<>.[]'
+    Expect Call(func_name, 'lower', target) == 'def'
+    Expect Call(func_name, 'upper', target) == 'ABC'
+    Expect Call(func_name, 'number', target) == '123'
+    Expect Call(func_name, 'symbol', target) == '<>.[]'
   end
 
   it 'should extract no character from empty string'
     let target = ''
+    let func_name = s:Reg('func')
 
-    Expect Call(g:__func__, 'lower', target) == ''
-    Expect Call(g:__func__, 'upper', target) == ''
-    Expect Call(g:__func__, 'number', target) == ''
-    Expect Call(g:__func__, 'symbol', target) == ''
+    Expect Call(func_name, 'lower', target) == ''
+    Expect Call(func_name, 'upper', target) == ''
+    Expect Call(func_name, 'number', target) == ''
+    Expect Call(func_name, 'symbol', target) == ''
   end
 
 end
@@ -564,36 +554,37 @@ end
 describe 's:extract_definition_names()'
 
   before
-    let g:__func__ = 's:extract_definition_names'
-    let g:__bundle_func__ = 's:definition_bundle'
-    let g:__signs__ = s:toggle_sign_defs(1)
+    call s:Reg({
+      \ 'func': 's:extract_definition_names',
+      \ 'bundle_func': 's:definition_bundle',
+      \ 'signs': s:toggle_sign_defs(1)
+      \ })
   end
 
   after
     call s:toggle_sign_defs(0)
-
-    unlet g:__func__
-    unlet g:__bundle_func__
-    unlet g:__signs__
+    call s:Reg(0)
   end
 
   it 'should extarct sign names from strings by s:definition_bundle()'
-    let bundle = Call(g:__bundle_func__)
-    let names = Call(g:__func__, bundle, g:__signs__[0])
+    let signs = s:Reg('signs')
+    let bundle = Call(s:Reg('bundle_func'))
+    let names = Call(s:Reg('func'), bundle, signs[0])
 
     Expect type(names) == type([])
     Expect len(names) == 1
-    Expect names == [g:__signs__[0]]
+    Expect names == [signs[0]]
   end
 
   it 'should return empty list if no sign name is found or passed empty string'
-    let names = Call(g:__func__, '', g:__signs__[0])
+    let signs = s:Reg('signs')
+    let names = Call(s:Reg('func'), '', signs[0])
 
     Expect type(names) == type([])
     Expect names == []
 
-    let bundle = Call(g:__bundle_func__)
-    let names = Call(g:__func__, bundle, '^__never_match__')
+    let bundle = Call(s:Reg('bundle_func'))
+    let names = Call(s:Reg('func'), bundle, '^__never_match__')
 
     Expect type(names) == type([])
     Expect names == []
@@ -605,19 +596,21 @@ end
 describe 's:extract_sign_specs'
 
   before
-    let g:__func__ = 's:extract_sign_specs'
-    let g:__bundle_func__ = 's:sign_bundle'
-    let g:__sign_spec_tmpl__ = {
-      \ 'marks': [],
-      \ 'others': [],
-      \ 'ids': [],
-      \ 'order': []
-      \ }
+    call s:Reg({
+      \ 'func': 's:extract_sign_specs',
+      \ 'bundle_func': 's:sign_bundle',
+      \ 'sign_spec_tmpl': {
+        \ 'marks': [],
+        \ 'others': [],
+        \ 'ids': [],
+        \ 'order': []
+        \ }
+      \ })
 
     " line-no, id, name
     " Note: Signs are placed following order, AND appears in bundle(sign place
     "       buffer=n) with INVERSE order.
-    let g:__sign_specs__ = [
+    call s:Reg({'sign_specs': [
       \ [1, 12, 'MYS_b'],
       \ [1, 11, 'MYS_a'],
       \ [2, 26, 'OTS_2'],
@@ -626,9 +619,9 @@ describe 's:extract_sign_specs'
       \ [2, 25, 'OTS_1'],
       \ [3, 32, 'OTS_4'],
       \ [3, 31, 'OTS_3'],
-      \ ]
+      \ ]})
 
-    for spec in g:__sign_specs__
+    for spec in s:Reg('sign_specs')
       execute 'sign define '.spec[2]
       execute printf('sign place %s line=%s name=%s buffer=%s', spec[1], spec[0], spec[2], bufnr('%'))
     endfor
@@ -636,25 +629,25 @@ describe 's:extract_sign_specs'
 
   after
     sign unplace *
-    for spec in g:__sign_specs__
+    for spec in s:Reg('sign_specs')
       execute 'sign undefine '.spec[2]
     endfor
 
-    unlet g:__func__
-    unlet g:__bundle_func__
-    unlet g:__sign_spec_tmpl__
-    unlet g:__sign_specs__
+    call s:Reg(0)
   end
 
   it 'should return empty spec-hash if no sign in buffer (line-no specified)'
     sign unplace *
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let func_name = s:Reg('func')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
+    let expected = s:Reg('sign_spec_tmpl')
 
-    Expect Call(g:__func__, bundle, 1, '^MYS') == g:__sign_spec_tmpl__
+    Expect Call(func_name, bundle, 1, '^MYS') == expected
   end
 
   it 'should extract spec-hash contains both(self,others) signs (line-no specified)'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let func_name = s:Reg('func')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
       \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
       \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
@@ -662,11 +655,12 @@ describe 's:extract_sign_specs'
       \ 'order':  [ 0, 1, 1, 0 ]
       \ }
 
-    Expect Call(g:__func__, bundle, 2, '^MYS') == expected
+    Expect Call(func_name, bundle, 2, '^MYS') == expected
   end
 
   it 'should extract spec-hash only contains only signs of self (line-no specified)'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let func_name = s:Reg('func')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
       \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
       \ 'others': [],
@@ -674,11 +668,12 @@ describe 's:extract_sign_specs'
       \ 'order':  [ 1, 1 ]
       \ }
 
-    Expect Call(g:__func__, bundle, 1, '^MYS') == expected
+    Expect Call(func_name, bundle, 1, '^MYS') == expected
   end
 
   it 'should extract spec-hash only contains only signs of others (line-no specified)'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let func_name = s:Reg('func')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
       \ 'marks':  [],
       \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
@@ -686,11 +681,12 @@ describe 's:extract_sign_specs'
       \ 'order':  [ 0, 0 ]
       \ }
 
-    Expect Call(g:__func__, bundle, 3, '^MYS') == expected
+    Expect Call(func_name, bundle, 3, '^MYS') == expected
   end
 
   it 'should extract all signs as line-no => spec-hash (line-no = 0)'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
+    let func_name = s:Reg('func')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
       \ '1': {
         \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
@@ -712,7 +708,7 @@ describe 's:extract_sign_specs'
         \ }
       \ }
 
-    Expect Call(g:__func__, bundle, 0, '^MYS') == expected
+    Expect Call(func_name, bundle, 0, '^MYS') == expected
   end
 
 end
@@ -721,48 +717,49 @@ end
 describe 's:extract_sign_ids()'
 
   before
-    let g:__func__ = 's:extract_sign_ids'
-    let g:__bundle_func__ = 's:sign_bundle'
-    let g:__signs__ = s:toggle_sign_defs(1)
-    let g:__ids__ = s:toggle_sign_placement(g:__signs__)
+    let signs = s:toggle_sign_defs(1)
+    call s:Reg({
+      \ 'func': 's:extract_sign_ids',
+      \ 'bundle_func': 's:sign_bundle',
+      \ 'signs': signs,
+      \ 'ids': s:toggle_sign_placement(signs)
+      \ })
   end
 
   after
     call s:toggle_sign_placement([])
     call s:toggle_sign_defs(0)
-
-    unlet g:__func__
-    unlet g:__bundle_func__
-    unlet g:__signs__
-    unlet g:__ids__
+    call s:Reg(0)
   end
 
   it 'should return empty list if no sign in buffer'
     call s:toggle_sign_placement([])
 
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
-    let ids = Call(g:__func__, bundle, g:__signs__[0])
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
+    let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
 
     Expect type(ids) == type([])
     Expect len(ids) == 0
   end
 
   it 'should extract id of sign matched passed pattern from strings by s:sign_bundle()'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
-    let ids = Call(g:__func__, bundle, g:__signs__[0])
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
+    let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
+    let expected = s:Reg('ids')
 
     Expect type(ids) == type([])
     Expect len(ids) == 1
-    Expect ids == [g:__ids__[0]]
+    Expect ids == [expected[0]]
   end
 
   it 'should extract all id of sign if passed empty pattern'
-    let bundle = Call(g:__bundle_func__, bufnr('%'))
-    let ids = Call(g:__func__, bundle, '')
+    let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
+    let ids = Call(s:Reg('func'), bundle, '')
+    let expected = s:Reg('ids')
 
     Expect type(ids) == type([])
-    Expect len(ids) == len(g:__ids__)
-    Expect sort(ids, 'n') == sort(deepcopy(g:__ids__), 'n')
+    Expect len(ids) == len(expected)
+    Expect sort(ids, 'n') == sort(deepcopy(expected), 'n')
   end
 
 end
@@ -771,37 +768,41 @@ end
 describe 's:generate_id()'
 
   before
-    let g:__func__ = 's:generate_id'
-    let g:__signs__ = s:toggle_sign_defs(1)
+    call s:Reg({
+      \ 'func': 's:generate_id',
+      \ 'signs': s:toggle_sign_defs(1)
+      \ })
   end
 
   after
     call s:toggle_sign_defs(0)
-
-    unlet g:__func__
-    unlet g:__signs__
+    call s:Reg(0)
   end
 
   it 'should generate id=1 if no sign in buffer'
-    Expect Call(g:__func__) == 1
+    let func_name = s:Reg('func')
+
+    Expect Call(func_name) == 1
   end
 
   it 'should generate next number of max id in buffer'
+    let func_name = s:Reg('func')
     let max_id = 10
 
     for id in [7, max_id, 1]
-      execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, g:__signs__[0], bufnr('%'))
+      execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, s:Reg('signs')[0], bufnr('%'))
     endfor
 
-    Expect Call(g:__func__) == max_id + 1
+    Expect Call(func_name) == max_id + 1
   end
 
   it 'should random and less than 100000 number if max number exceeded 100000'
+    let func_name = s:Reg('func')
     let max_id = 100010
 
-    execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, g:__signs__[0], bufnr('%'))
+    execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, s:Reg('signs')[0], bufnr('%'))
 
-    Expect Call(g:__func__) <= 100000
+    Expect Call(func_name) <= 100000
   end
 
 end
@@ -828,47 +829,46 @@ end
 describe 's:sign_bundle()'
 
   before
-    let g:__func__ = 's:sign_bundle'
-    let g:__signs__ = s:toggle_sign_defs(1)
-    let g:__ids__ = s:toggle_sign_placement(g:__signs__)
+    call s:Reg({
+      \ 'func': 's:sign_bundle',
+      \ 'signs': s:toggle_sign_defs(1)
+      \ })
+    call s:toggle_sign_placement(s:Reg('signs'))
   end
 
   after
     call s:toggle_sign_placement([])
     call s:toggle_sign_defs(0)
-
-    unlet g:__func__
-    unlet g:__signs__
-    unlet g:__ids__
+    call s:Reg(0)
   end
 
   it 'should return placed sign info in designated buffer as single string crumb'
-    let bundle = Call(g:__func__, bufnr('%'))
+    let bundle = Call(s:Reg('func'), bufnr('%'))
 
     Expect type(bundle) == type('')
     Expect bundle != ''
-    for sign_name in g:__signs__
+    for sign_name in s:Reg('signs')
       Expect bundle =~# sign_name
     endfor
   end
 
   it 'should return placed sign info current buffer if no number passed'
-    let bundle = Call(g:__func__)
+    let bundle = Call(s:Reg('func'))
 
     Expect type(bundle) == type('')
     Expect bundle != ''
-    for sign_name in g:__signs__
+    for sign_name in s:Reg('signs')
       Expect bundle =~# sign_name
     endfor
   end
 
   it 'should return strings not contained sign info if no sign in buffer'
     call s:toggle_sign_placement([])
-    let bundle = Call(g:__func__, bufnr('%'))
+    let bundle = Call(s:Reg('func'), bufnr('%'))
 
     Expect type(bundle) == type('')
     Expect bundle != ''
-    for sign_name in g:__signs__
+    for sign_name in s:Reg('signs')
       Expect bundle !~# sign_name
     endfor
   end
