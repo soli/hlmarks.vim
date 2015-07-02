@@ -329,16 +329,8 @@ function! s:update_signs()
   "    by other plugins, by user-operations, etc.
   "    Note: sign state contains line that only has sign marked by others.
   elseif sign_snapshot != sign_cache
-    for [line_no, sign_spec] in items(sign_snapshot)
-      if has_key(sign_cache, line_no) != 0 && sign_spec == sign_cache[line_no]
-        continue
-      endif
-
-      let sign_spec = hlmarks#sign#reorder_spec(sign_spec)
-      call hlmarks#sign#remove_with_ids(sign_spec.ids, bufnr('%'))
-      call hlmarks#sign#place(line_no, sign_spec.ordered)
-      call hlmarks#sign#set_cache()
-    endfor
+    call hlmarks#sign#place_with_delta(sign_cache, sign_snapshot)
+    call hlmarks#sign#set_cache()
 
     " echo reltimestr(reltime()) . '(by change of signs)'
   else
