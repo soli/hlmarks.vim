@@ -111,25 +111,6 @@ function! hlmarks#sign#get_cache()
 endfunction
 
 "
-" Place signs.
-"
-" Param:  [Number] line_no: line no.
-" Param:  [List] sign_units: sign units([[id, name], ..])
-"
-function! hlmarks#sign#place(line_no, sign_units)
-  let buffer_no = bufnr('%')
-  for [sign_id, sign_name] in a:sign_units
-    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign place %s line=%s name=%s buffer=%s',
-      \ sign_id,
-      \ a:line_no,
-      \ sign_name,
-      \ buffer_no
-      \ )
-  endfor
-endfunction
-
-"
 " Place new sign.
 "
 " Param:  [Number] line_no: line number
@@ -157,7 +138,7 @@ function! hlmarks#sign#place_on_mark(line_no, mark_name)
 
   endif
 
-  call hlmarks#sign#place(a:line_no, sign_units)
+  call s:place(a:line_no, sign_units)
 endfunction
 
 "
@@ -174,7 +155,7 @@ function! hlmarks#sign#place_with_delta(...)
     if !has_key(cache, line_no) || spec != cache[line_no]
       let ordered_spec = hlmarks#sign#reorder_spec(spec)
       call s:remove_with_ids(ordered_spec.ids, bufnr('%'))
-      call hlmarks#sign#place(line_no, ordered_spec.ordered)
+      call s:place(line_no, ordered_spec.ordered)
     endif
   endfor
 endfunction
@@ -521,6 +502,25 @@ function! s:name_sorter(a, b) dict
   let b_idx = stridx(self.seq, s:mark_name_of(a:b[1]))
 
   return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
+endfunction
+
+"
+" Place signs.
+"
+" Param:  [Number] line_no: line no.
+" Param:  [List] sign_units: sign units([[id, name], ..])
+"
+function! s:place(line_no, sign_units)
+  let buffer_no = bufnr('%')
+  for [sign_id, sign_name] in a:sign_units
+    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
+    silent! execute printf('sign place %s line=%s name=%s buffer=%s',
+      \ sign_id,
+      \ a:line_no,
+      \ sign_name,
+      \ buffer_no
+      \ )
+  endfor
 endfunction
 
 "

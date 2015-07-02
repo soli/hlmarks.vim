@@ -197,34 +197,6 @@ describe 'get_cache()'
 end
 
 
-describe 'place()'
-
-  it 'should place signs according to passed specs'
-    let sign_names = s:define_sign(1)
-
-    let bundle_func = 's:sign_bundle'
-    let sign_specs = []
-    let id = 1
-    for name in sign_names
-      call add(sign_specs, [id, name])
-      let id += 1
-    endfor
-
-    call hlmarks#sign#place(1, sign_specs)
-    let bundle = Call(bundle_func)
-    unlet name
-
-    for name in sign_names
-      Expect bundle =~ name
-    endfor
-
-    call s:place_sign(0)
-    call s:define_sign(0)
-  end
-
-end
-
-
 describe 'place_on_mark()'
 
   before
@@ -1042,6 +1014,34 @@ describe 's:generate_id()'
     execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, s:Reg('signs')[0], bufnr('%'))
 
     Expect Call(func_name) <= 100000
+  end
+
+end
+
+
+describe 'place()'
+
+  it 'should place signs according to passed specs'
+    let sign_names = s:define_sign(1)
+
+    let bundle_func = 's:sign_bundle'
+    let sign_specs = []
+    let id = 1
+    for name in sign_names
+      call add(sign_specs, [id, name])
+      let id += 1
+    endfor
+
+    call Call('s:place', 1, sign_specs)
+    let bundle = Call(bundle_func)
+    unlet name
+
+    for name in sign_names
+      Expect bundle =~ name
+    endfor
+
+    call s:place_sign(0)
+    call s:define_sign(0)
   end
 
 end
