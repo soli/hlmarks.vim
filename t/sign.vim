@@ -58,6 +58,25 @@ function! s:place_sign(sign_names)
 endfunction
 
 
+function! s:extract_name(sign_names)
+  let prefix = s:sign_prefix()
+  let names = []
+  for sign_name in a:sign_names
+    call add(names, substitute(sign_name, prefix, '', ''))
+  endfor
+  return names
+endfunction
+
+
+function! s:extract_sign_name(sign_units)
+  let sign_names = []
+  for unit in a:sign_units
+    call add(sign_names, unit[1])
+  endfor
+  return sign_names
+endfunction
+
+
 
 describe 'define()/undefine()'
 
@@ -211,11 +230,17 @@ describe 'place_on_mark()'
     call s:StashGlobal(1)
     call s:Local(1)
     call s:Local({'prefix': s:sign_prefix()})
+
+    let signs = s:define_sign(1)
+
     call s:Reg({
-      \ 'signs': s:define_sign(1),
+      \ 'signs': signs,
+      \ 'names': s:extract_name(signs),
       \ 'bundle_func': 's:sign_bundle',
       \ 'extract_func': 's:extract_sign_specs',
       \})
+
+    let g:hlmarks_displaying_marks = 'cba'
   end
 
   after
@@ -225,22 +250,47 @@ describe 'place_on_mark()'
     call s:StashGlobal(0)
   end
 
-
   it 'should place signs on designated line as name for designated mark (order=as-is)'
-    let g:hlmarks_stacked_signs_order = 1
+    let signs = s:Reg('signs')
+    let names = s:Reg('names')
+
     let g:hlmarks_sort_stacked_signs = 0
 
-    call hlmarks#sign#place_on_mark(1, 'a')
+    for name in names
+      call hlmarks#sign#place_on_mark(1, name)
+    endfor
 
     let bundle = Call(s:Reg('bundle_func'))
-    let prefix = s:sign_prefix()
-    let spec = Call(s:Reg('extract_func'), bundle, 1, prefix)
+    let spec = Call(s:Reg('extract_func'), bundle, 1, s:sign_prefix())
 
-    Expect len(spec) != 0
-    Expect len(spec.marks) == 1
+    Expect spec != {}
+    Expect len(spec.marks) == len(names)
 
-    let signs = s:Reg('signs')
-    Expect index(signs, spec.marks[0][1]) >= 0
+    let placed_signs = s:extract_sign_name(spec.marks)
+
+    Expect signs == placed_signs
+  end
+
+  it 'should place signs on designated line as name for designated mark (ordered)'
+    let signs = deepcopy(s:Reg('signs'), 1)
+    let names = s:Reg('names')
+
+    let g:hlmarks_sort_stacked_signs = 1
+
+    for name in names
+      call hlmarks#sign#place_on_mark(1, name)
+    endfor
+
+    let bundle = Call(s:Reg('bundle_func'))
+    let spec = Call(s:Reg('extract_func'), bundle, 1, s:sign_prefix())
+
+    Expect spec != {}
+    Expect len(spec.marks) == len(names)
+
+    let placed_signs = s:extract_sign_name(spec.marks)
+    call reverse(signs)
+
+    Expect signs == placed_signs
   end
 
 end
