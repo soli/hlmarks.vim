@@ -385,6 +385,157 @@ describe 'place_with_delta()'
 end
 
 
+describe 'remove_all()'
+
+  before
+    call s:Local(1)
+    call s:Local({'prefix': s:sign_prefix()})
+    call s:Reg({
+      \ 'signs': s:define_sign(1),
+      \ 'bundle_func': 's:sign_bundle',
+      \})
+
+    call s:place_sign(s:Reg('signs'))
+  end
+
+  after
+    call s:place_sign(0)
+    call s:define_sign(0)
+    call s:Reg(0)
+    call s:Local(0)
+  end
+
+  it 'should remove all signs on mark in current buffer if no buffer number is designated'
+    call hlmarks#sign#remove_all()
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in s:Reg('signs')
+      Expect bundle !~# sign_name
+    endfor
+  end
+
+  it 'should remove all signs on mark in designated buffer'
+    call hlmarks#sign#remove_all([bufnr('%')])
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in s:Reg('signs')
+      Expect bundle !~# sign_name
+    endfor
+  end
+
+end
+
+
+describe 'remove_on_mark()'
+
+  before
+    call s:Local(1)
+    call s:Local({'prefix': s:sign_prefix()})
+
+    let signs = s:define_sign(1)
+
+    call s:Reg({
+      \ 'signs': signs,
+      \ 'names': s:extract_name(signs),
+      \ 'bundle_func': 's:sign_bundle',
+      \})
+
+    call s:place_sign(signs)
+  end
+
+  after
+    call s:place_sign(0)
+    call s:define_sign(0)
+    call s:Reg(0)
+    call s:Local(0)
+  end
+
+  it 'should remove sign named designated mark name in current buffer if no buffer number is designated'
+    let signs = s:Reg('signs')
+
+    call hlmarks#sign#remove_on_mark(s:Reg('names')[0])
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    Expect bundle !~# signs[0]
+
+    for sign_name in signs[1:]
+      Expect bundle =~# sign_name
+    endfor
+  end
+
+  it 'should remove sign named designated mark name in designated buffer'
+    let signs = s:Reg('signs')
+
+    call hlmarks#sign#remove_on_mark(s:Reg('names')[0], bufnr('%'))
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    Expect bundle !~# signs[0]
+
+    for sign_name in signs[1:]
+      Expect bundle =~# sign_name
+    endfor
+  end
+
+end
+
+
+describe 'remove_with_ids()'
+
+  before
+    call s:Local(1)
+    call s:Local({'prefix': s:sign_prefix()})
+
+    let signs = s:define_sign(1)
+
+    call s:Reg({
+      \ 'signs': signs,
+      \ 'ids': s:place_sign(signs),
+      \ 'bundle_func': 's:sign_bundle',
+      \})
+  end
+
+  after
+    call s:place_sign(0)
+    call s:define_sign(0)
+    call s:Reg(0)
+    call s:Local(0)
+  end
+
+  it 'should remove sign with designated id in current buffer if no buffer number is designated'
+    let signs = s:Reg('signs')
+
+    call hlmarks#sign#remove_with_ids(s:Reg('ids')[0:1])
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in signs[0:1]
+      Expect bundle !~# sign_name
+    endfor
+
+    Expect bundle =~# signs[-1]
+  end
+
+  it 'should remove sign with designated id in designated buffer'
+    let signs = s:Reg('signs')
+
+    call hlmarks#sign#remove_with_ids(s:Reg('ids')[0:1], bufnr('%'))
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in signs[0:1]
+      Expect bundle !~# sign_name
+    endfor
+
+    Expect bundle =~# signs[-1]
+  end
+
+end
+
+
 describe 'should_place()'
 
   before
