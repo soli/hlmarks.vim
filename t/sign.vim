@@ -298,6 +298,93 @@ describe 'place_on_mark()'
 end
 
 
+describe 'place_with_delta()'
+
+  before
+    call s:StashGlobal(1)
+    call s:Local(1)
+    call s:Reg({
+      \ 'signs': s:define_sign(1),
+      \ 'bundle_func': 's:sign_bundle',
+      \ 'extract_func': 's:extract_sign_specs',
+      \})
+
+    let g:hlmarks_displaying_marks = 'cba'
+  end
+
+  after
+    call s:place_sign(0)
+    call s:define_sign(0)
+    call s:Reg(0)
+    call s:Local(0)
+    call s:StashGlobal(0)
+  end
+
+  it 'should place signs accroding to delta between two cache data'
+    let signs = s:Reg('signs')
+
+    " Consider only last one sign name as self sign.
+    call s:Local({'prefix': signs[-1]})
+
+    call s:place_sign(signs)
+
+    call hlmarks#sign#set_cache()
+
+    " Force order self(bottom)->others(upper)
+    let g:hlmarks_stacked_signs_order = 0
+
+    call hlmarks#sign#place_with_delta()
+
+    let bundle = Call(s:Reg('bundle_func'))
+    let spec = Call(s:Reg('extract_func'), bundle, 1, signs[-1])
+
+    Expect spec != {}
+    Expect len(spec.marks) == 1
+    Expect len(spec.others) == (len(signs) - 1)
+
+    let placed_signs = s:extract_sign_name(spec.marks)
+    let placed_others = s:extract_sign_name(spec.others)
+
+    Expect [signs[-1]] == placed_signs
+    Expect signs[0:1] == placed_others
+  end
+
+  it 'should place signs accroding to delta that calculated by args'
+    let signs = s:Reg('signs')
+
+    " Consider only last one sign name as self sign.
+    call s:Local({'prefix': signs[-1]})
+
+    " Get empty state.
+    let cache = hlmarks#sign#get_cache()
+
+    call s:place_sign(signs)
+
+    " Get current state.
+    let snapshot = hlmarks#sign#get_cache()
+
+    " Force order self(bottom)->others(upper)
+    let g:hlmarks_stacked_signs_order = 0
+
+    call hlmarks#sign#place_with_delta(cache, snapshot)
+
+    let bundle = Call(s:Reg('bundle_func'))
+    let spec = Call(s:Reg('extract_func'), bundle, 1, signs[-1])
+
+    Expect spec != {}
+    Expect len(spec.marks) == 1
+    Expect len(spec.others) == (len(signs) - 1)
+
+    let placed_signs = s:extract_sign_name(spec.marks)
+    let placed_others = s:extract_sign_name(spec.others)
+
+    Expect [signs[-1]] == placed_signs
+    Expect signs[0:1] == placed_others
+  end
+
+end
+
+
 describe 'should_place()'
 
   before

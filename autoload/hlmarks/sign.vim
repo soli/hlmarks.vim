@@ -161,6 +161,25 @@ function! hlmarks#sign#place_on_mark(line_no, mark_name)
 endfunction
 
 "
+" Place signs according to delta.
+"
+" Param:  [Dict] (a:1) sign specs (past)
+" Param:  [Dict] (a:2) sign specs (current)
+"
+function! hlmarks#sign#place_with_delta(...)
+  let cache = a:0 ? a:1 : hlmarks#sign#get_cache()
+  let snapshot = a:0 >= 2 ? a:2 : hlmarks#sign#generate_state()
+
+  for [line_no, spec] in items(snapshot)
+    if !has_key(cache, line_no) || spec != cache[line_no]
+      let ordered_spec = hlmarks#sign#reorder_spec(spec)
+      call hlmarks#sign#remove_with_ids(ordered_spec.ids, bufnr('%'))
+      call hlmarks#sign#place(line_no, ordered_spec.ordered)
+    endif
+  endfor
+endfunction
+
+"
 " Remove all signs of mark in designated buffer.
 "
 " Param:  [List] (a:1) target buffer numbers(default=['%'])
