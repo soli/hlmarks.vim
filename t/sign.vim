@@ -486,59 +486,6 @@ describe 'remove_on_mark()'
 end
 
 
-describe 'remove_with_ids()'
-
-  before
-    call s:Local(1)
-    call s:Local({'prefix': s:sign_prefix()})
-
-    let signs = s:define_sign(1)
-
-    call s:Reg({
-      \ 'signs': signs,
-      \ 'ids': s:place_sign(signs),
-      \ 'bundle_func': 's:sign_bundle',
-      \})
-  end
-
-  after
-    call s:place_sign(0)
-    call s:define_sign(0)
-    call s:Reg(0)
-    call s:Local(0)
-  end
-
-  it 'should remove sign with designated id in current buffer if no buffer number is designated'
-    let signs = s:Reg('signs')
-
-    call hlmarks#sign#remove_with_ids(s:Reg('ids')[0:1])
-
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in signs[0:1]
-      Expect bundle !~# sign_name
-    endfor
-
-    Expect bundle =~# signs[-1]
-  end
-
-  it 'should remove sign with designated id in designated buffer'
-    let signs = s:Reg('signs')
-
-    call hlmarks#sign#remove_with_ids(s:Reg('ids')[0:1], bufnr('%'))
-
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in signs[0:1]
-      Expect bundle !~# sign_name
-    endfor
-
-    Expect bundle =~# signs[-1]
-  end
-
-end
-
-
 describe 'should_place()'
 
   before
@@ -1095,6 +1042,59 @@ describe 's:generate_id()'
     execute printf('sign place %s line=%s name=%s buffer=%s', max_id, 1, s:Reg('signs')[0], bufnr('%'))
 
     Expect Call(func_name) <= 100000
+  end
+
+end
+
+
+describe 's:remove_with_ids()'
+
+  before
+    call s:Local(1)
+    call s:Local({'prefix': s:sign_prefix()})
+
+    let signs = s:define_sign(1)
+
+    call s:Reg({
+      \ 'signs': signs,
+      \ 'ids': s:place_sign(signs),
+      \ 'bundle_func': 's:sign_bundle',
+      \})
+  end
+
+  after
+    call s:place_sign(0)
+    call s:define_sign(0)
+    call s:Reg(0)
+    call s:Local(0)
+  end
+
+  it 'should remove sign with designated id in current buffer if no buffer number is designated'
+    let signs = s:Reg('signs')
+
+    call Call('s:remove_with_ids', s:Reg('ids')[0:1])
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in signs[0:1]
+      Expect bundle !~# sign_name
+    endfor
+
+    Expect bundle =~# signs[-1]
+  end
+
+  it 'should remove sign with designated id in designated buffer'
+    let signs = s:Reg('signs')
+
+    call Call('s:remove_with_ids', s:Reg('ids')[0:1], bufnr('%'))
+
+    let bundle = Call(s:Reg('bundle_func'))
+
+    for sign_name in signs[0:1]
+      Expect bundle !~# sign_name
+    endfor
+
+    Expect bundle =~# signs[-1]
   end
 
 end

@@ -152,7 +152,7 @@ function! hlmarks#sign#place_on_mark(line_no, mark_name)
     let sign_spec = hlmarks#sign#reorder_spec(sign_spec)
 
     " Note: In this case of adding new sign, signs are surely re-oredered.
-    call hlmarks#sign#remove_with_ids(sign_spec.ids, bufnr('%'))
+    call s:remove_with_ids(sign_spec.ids, bufnr('%'))
     let sign_units = sign_spec.ordered
 
   endif
@@ -173,7 +173,7 @@ function! hlmarks#sign#place_with_delta(...)
   for [line_no, spec] in items(snapshot)
     if !has_key(cache, line_no) || spec != cache[line_no]
       let ordered_spec = hlmarks#sign#reorder_spec(spec)
-      call hlmarks#sign#remove_with_ids(ordered_spec.ids, bufnr('%'))
+      call s:remove_with_ids(ordered_spec.ids, bufnr('%'))
       call hlmarks#sign#place(line_no, ordered_spec.ordered)
     endif
   endfor
@@ -189,7 +189,7 @@ function! hlmarks#sign#remove_all(...)
   for buffer_no in buffer_numbers
     let bundle = s:sign_bundle(buffer_no)
     let sign_ids = s:extract_sign_ids(bundle, s:sign_pattern())
-    call hlmarks#sign#remove_with_ids(sign_ids, buffer_no)
+    call s:remove_with_ids(sign_ids, buffer_no)
   endfor
 endfunction
 
@@ -204,21 +204,7 @@ function! hlmarks#sign#remove_on_mark(mark_name, ...)
   let bundle = s:sign_bundle(buffer_no)
   let sign_name = '\C\v^' . s:sign_name_of(escape(a:mark_name, s:sign.escape_chars)) . '$'
   let sign_ids = s:extract_sign_ids(bundle, sign_name)
-  call hlmarks#sign#remove_with_ids(sign_ids, buffer_no)
-endfunction
-
-"
-" Remove signs with designated id(s).
-"
-" Param:  [List] sign_ids: sign id's
-" Param:  [Number] (a:1) target buffer number(default='%')
-"
-function! hlmarks#sign#remove_with_ids(sign_ids, ...)
-  let buffer_no = a:0 ? a:1 : bufnr('%')
-  for id in a:sign_ids
-    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign unplace %s buffer=%s', id, buffer_no)
-  endfor
+  call s:remove_with_ids(sign_ids, buffer_no)
 endfunction
 
 "
@@ -535,6 +521,20 @@ function! s:name_sorter(a, b) dict
   let b_idx = stridx(self.seq, s:mark_name_of(a:b[1]))
 
   return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
+endfunction
+
+"
+" Remove signs with designated id(s).
+"
+" Param:  [List] sign_ids: sign id's
+" Param:  [Number] (a:1) target buffer number(default='%')
+"
+function! s:remove_with_ids(sign_ids, ...)
+  let buffer_no = a:0 ? a:1 : bufnr('%')
+  for id in a:sign_ids
+    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
+    silent! execute printf('sign unplace %s buffer=%s', id, buffer_no)
+  endfor
 endfunction
 
 "
