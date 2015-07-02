@@ -557,84 +557,6 @@ describe 'should_place_on_mark()'
 end
 
 
-describe 'reorder_spec()'
-
-  before
-    call s:StashGlobal(1)
-    call s:Local(1)
-    call s:Local({'prefix': 'SLF_'})
-    call s:Reg({'sign_spec_tmpl': {
-      \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
-      \ 'others': [ [21, 'OTS_2'], [20, 'OTS_1'] ],
-      \ 'order':  [ 1, 0, 0, 1 ],
-      \ }})
-
-    let g:hlmarks_displaying_marks = 'ba'
-  end
-
-  after
-    call s:Reg(0)
-    call s:Local(0)
-    call s:StashGlobal(0)
-  end
-
-  it 'should not sort and signs of self are always placed under signs of others'
-    let g:hlmarks_sort_stacked_signs = 0
-    let g:hlmarks_stacked_signs_order = 0
-    let expected = [ [10, 'SLF_a'], [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-  it 'should sort and signs of self are always placed under signs of others'
-    let g:hlmarks_sort_stacked_signs = 1
-    let g:hlmarks_stacked_signs_order = 0
-    let expected = [ [11, 'SLF_b'], [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-  it 'should not sort and signs of self/others are placed same order'
-    let g:hlmarks_sort_stacked_signs = 0
-    let g:hlmarks_stacked_signs_order = 1
-    let expected = [ [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-  it 'should sort and signs of self/others are placed same order'
-    let g:hlmarks_sort_stacked_signs = 1
-    let g:hlmarks_stacked_signs_order = 1
-    let expected = [ [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-  it 'should not sort and signs of self are always placed above signs of others'
-    let g:hlmarks_sort_stacked_signs = 0
-    let g:hlmarks_stacked_signs_order = 2
-    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'], [11, 'SLF_b'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-  it 'should sort and signs of self are always placed above signs of others'
-    let g:hlmarks_sort_stacked_signs = 1
-    let g:hlmarks_stacked_signs_order = 2
-    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'], [10, 'SLF_a'] ]
-
-    let ordered = hlmarks#sign#reorder_spec(s:Reg('sign_spec_tmpl'))
-    Expect ordered.ordered == expected
-  end
-
-end
-
-
 describe 's:fix_sign_format()'
 
   before
@@ -1095,6 +1017,84 @@ describe 's:remove_with_ids()'
     endfor
 
     Expect bundle =~# signs[-1]
+  end
+
+end
+
+
+describe 's:reorder_spec()'
+
+  before
+    call s:StashGlobal(1)
+    call s:Local(1)
+    call s:Local({'prefix': 'SLF_'})
+    call s:Reg({'sign_spec_tmpl': {
+      \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
+      \ 'others': [ [21, 'OTS_2'], [20, 'OTS_1'] ],
+      \ 'order':  [ 1, 0, 0, 1 ],
+      \ }})
+
+    let g:hlmarks_displaying_marks = 'ba'
+  end
+
+  after
+    call s:Reg(0)
+    call s:Local(0)
+    call s:StashGlobal(0)
+  end
+
+  it 'should not sort and signs of self are always placed under signs of others'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 0
+    let expected = [ [10, 'SLF_a'], [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
+  end
+
+  it 'should sort and signs of self are always placed under signs of others'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 0
+    let expected = [ [11, 'SLF_b'], [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
+  end
+
+  it 'should not sort and signs of self/others are placed same order'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 1
+    let expected = [ [10, 'SLF_a'], [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
+  end
+
+  it 'should sort and signs of self/others are placed same order'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 1
+    let expected = [ [11, 'SLF_b'], [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
+  end
+
+  it 'should not sort and signs of self are always placed above signs of others'
+    let g:hlmarks_sort_stacked_signs = 0
+    let g:hlmarks_stacked_signs_order = 2
+    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [10, 'SLF_a'], [11, 'SLF_b'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
+  end
+
+  it 'should sort and signs of self are always placed above signs of others'
+    let g:hlmarks_sort_stacked_signs = 1
+    let g:hlmarks_stacked_signs_order = 2
+    let expected = [ [21, 'OTS_2'], [20, 'OTS_1'], [11, 'SLF_b'], [10, 'SLF_a'] ]
+
+    let ordered = Call('s:reorder_spec', s:Reg('sign_spec_tmpl'))
+    Expect ordered.ordered == expected
   end
 
 end

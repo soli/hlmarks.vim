@@ -130,7 +130,7 @@ function! hlmarks#sign#place_on_mark(line_no, mark_name)
     " Note: No need to add to 'ids(removing)', because no need to remove new signs.
     call extend(sign_spec.marks, sign_units)
 
-    let sign_spec = hlmarks#sign#reorder_spec(sign_spec)
+    let sign_spec = s:reorder_spec(sign_spec)
 
     " Note: In this case of adding new sign, signs are surely re-oredered.
     call s:remove_with_ids(sign_spec.ids, bufnr('%'))
@@ -153,7 +153,7 @@ function! hlmarks#sign#place_with_delta(...)
 
   for [line_no, spec] in items(snapshot)
     if !has_key(cache, line_no) || spec != cache[line_no]
-      let ordered_spec = hlmarks#sign#reorder_spec(spec)
+      let ordered_spec = s:reorder_spec(spec)
       call s:remove_with_ids(ordered_spec.ids, bufnr('%'))
       call s:place(line_no, ordered_spec.ordered)
     endif
@@ -186,51 +186,6 @@ function! hlmarks#sign#remove_on_mark(mark_name, ...)
   let sign_name = '\C\v^' . s:sign_name_of(escape(a:mark_name, s:sign.escape_chars)) . '$'
   let sign_ids = s:extract_sign_ids(bundle, sign_name)
   call s:remove_with_ids(sign_ids, buffer_no)
-endfunction
-
-"
-" Reorder sign spec.
-"
-" Param:  [Dict] sign_spec: sign spec(see extract_sign_specs())
-" Return: [Dict] dictionary of re-ordered sign spec as following structure
-"           { ... Same as return value of extract_sign_specs() ...
-"             'ordered':  [[id,name], ..] => ordered sign units }
-" Note:   This function is frequently called.
-"
-function! hlmarks#sign#reorder_spec(sign_spec)
-  let sign_spec = a:sign_spec
-
-  " Note: Sorter function changes passed list(In this case, sign_spec.marks).
-  if g:hlmarks_sort_stacked_signs != 0
-    call sort(sign_spec.marks, 's:name_sorter', {
-      \ 'seq': g:hlmarks_displaying_marks,
-      \ })
-  endif
-
-  " 0: Signs of mark are always placed lower than others.
-  if g:hlmarks_stacked_signs_order == 0
-    let signs = sign_spec.marks + sign_spec.others
-
-  " 1: Signs of mark are sorted but related-position to other signs is as-is.
-  elseif g:hlmarks_stacked_signs_order == 1
-    let signs = []
-    for sign_type in sign_spec.order
-      if sign_type == 1
-        call add(signs, remove(sign_spec.marks, 0))
-      else
-        call add(signs, remove(sign_spec.others, 0))
-      endif
-    endfor
-    call extend(signs, sign_spec.marks)
-
-  " 2: Signs of mark are always placed upper than others.
-  else
-    let signs = sign_spec.others + sign_spec.marks
-  endif
-
-  let sign_spec.ordered = signs
-
-  return sign_spec
 endfunction
 
 "
@@ -535,6 +490,51 @@ function! s:remove_with_ids(sign_ids, ...)
     " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
     silent! execute printf('sign unplace %s buffer=%s', id, buffer_no)
   endfor
+endfunction
+
+"
+" Reorder sign spec.
+"
+" Param:  [Dict] sign_spec: sign spec(see extract_sign_specs())
+" Return: [Dict] dictionary of re-ordered sign spec as following structure
+"           { ... Same as return value of extract_sign_specs() ...
+"             'ordered':  [[id,name], ..] => ordered sign units }
+" Note:   This function is frequently called.
+"
+function! s:reorder_spec(sign_spec)
+  let sign_spec = a:sign_spec
+
+  " Note: Sorter function changes passed list(In this case, sign_spec.marks).
+  if g:hlmarks_sort_stacked_signs != 0
+    call sort(sign_spec.marks, 's:name_sorter', {
+      \ 'seq': g:hlmarks_displaying_marks,
+      \ })
+  endif
+
+  " 0: Signs of mark are always placed lower than others.
+  if g:hlmarks_stacked_signs_order == 0
+    let signs = sign_spec.marks + sign_spec.others
+
+  " 1: Signs of mark are sorted but related-position to other signs is as-is.
+  elseif g:hlmarks_stacked_signs_order == 1
+    let signs = []
+    for sign_type in sign_spec.order
+      if sign_type == 1
+        call add(signs, remove(sign_spec.marks, 0))
+      else
+        call add(signs, remove(sign_spec.others, 0))
+      endif
+    endfor
+    call extend(signs, sign_spec.marks)
+
+  " 2: Signs of mark are always placed upper than others.
+  else
+    let signs = sign_spec.others + sign_spec.marks
+  endif
+
+  let sign_spec.ordered = signs
+
+  return sign_spec
 endfunction
 
 "
