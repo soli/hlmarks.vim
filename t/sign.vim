@@ -22,16 +22,16 @@ function! s:Local(subject)
 endfunction
 
 
-
-function! s:testing_prefix()
+function! s:sign_prefix()
   return '__test__'
 endfunction
 
 
-function! s:toggle_sign_defs(define)
+function! s:define_sign(define)
   let sign_names = []
-  for name in ['foo', 'bar', 'baz']
-    let sign_name = s:testing_prefix().name
+  " Should define for single chars in displaying list.
+  for name in ['a', 'b', 'c']
+    let sign_name = s:sign_prefix().name
     execute 'sign '.(a:define ? '' : 'un').'define '.sign_name
     call add(sign_names, sign_name)
   endfor
@@ -40,8 +40,8 @@ function! s:toggle_sign_defs(define)
 endfunction
 
 
-function! s:toggle_sign_placement(sign_names)
-  if a:sign_names == []
+function! s:place_sign(sign_names)
+  if type(a:sign_names) == type(1) && a:sign_names == 0
     sign unplace *
     return []
   endif
@@ -56,8 +56,6 @@ function! s:toggle_sign_placement(sign_names)
 
   return sign_ids
 endfunction
-
-
 
 
 
@@ -108,9 +106,9 @@ describe 'generate_state()'
 
   it 'should generate current sign spec'
     call s:Local(1)
-    call s:Local({'prefix': s:testing_prefix()})
-    let sign_names = s:toggle_sign_defs(1)
-    let sign_ids = s:toggle_sign_placement(sign_names)
+    call s:Local({'prefix': s:sign_prefix()})
+    let sign_names = s:define_sign(1)
+    let sign_ids = s:place_sign(sign_names)
 
     let specs = hlmarks#sign#generate_state()
     let extracted = []
@@ -131,8 +129,8 @@ describe 'generate_state()'
 
     Expect extracted[0].ids == sign_ids
 
-    call s:toggle_sign_placement([])
-    call s:toggle_sign_defs(1)
+    call s:place_sign(0)
+    call s:define_sign(0)
     call s:Local(0)
   end
 
@@ -150,9 +148,9 @@ describe 'get_cache()'
 
   it 'should return cache that is set by set_cache()'
     call s:Local(1)
-    call s:Local({'prefix': s:testing_prefix()})
-    let sign_names = s:toggle_sign_defs(1)
-    let sign_ids = s:toggle_sign_placement(sign_names)
+    call s:Local({'prefix': s:sign_prefix()})
+    let sign_names = s:define_sign(1)
+    let sign_ids = s:place_sign(sign_names)
 
     call hlmarks#sign#set_cache()
 
@@ -172,8 +170,8 @@ describe 'get_cache()'
     Expect extracted_names == sign_names
     Expect extracted_ids == sign_ids
 
-    call s:toggle_sign_placement([])
-    call s:toggle_sign_defs(1)
+    call s:place_sign(0)
+    call s:define_sign(0)
     call s:Local(0)
   end
 
@@ -183,7 +181,7 @@ end
 describe 'place()'
 
   it 'should place signs according to passed specs'
-    let sign_names = s:toggle_sign_defs(1)
+    let sign_names = s:define_sign(1)
 
     let bundle_func = 's:sign_bundle'
     let sign_specs = []
@@ -201,7 +199,7 @@ describe 'place()'
       Expect bundle =~ name
     endfor
 
-    call s:toggle_sign_defs(0)
+    call s:define_sign(0)
   end
 
 end
@@ -212,16 +210,16 @@ describe 'place_on_mark()'
   before
     call s:StashGlobal(1)
     call s:Local(1)
-    call s:Local({'prefix': s:testing_prefix()})
+    call s:Local({'prefix': s:sign_prefix()})
     call s:Reg({
-      \ 'signs': s:toggle_sign_defs(1),
+      \ 'signs': s:define_sign(1),
       \ 'bundle_func': 's:sign_bundle',
       \ 'extract_func': 's:extract_sign_specs',
       \})
   end
 
   after
-    call s:toggle_sign_defs(0)
+    call s:define_sign(0)
     call s:Reg(0)
     call s:Local(0)
     call s:StashGlobal(0)
@@ -232,10 +230,10 @@ describe 'place_on_mark()'
     let g:hlmarks_stacked_signs_order = 1
     let g:hlmarks_sort_stacked_signs = 0
 
-    call hlmarks#sign#place_on_mark(1, 'foo')
+    call hlmarks#sign#place_on_mark(1, 'a')
 
     let bundle = Call(s:Reg('bundle_func'))
-    let prefix = s:testing_prefix()
+    let prefix = s:sign_prefix()
     let spec = Call(s:Reg('extract_func'), bundle, 1, prefix)
 
     Expect len(spec) != 0
@@ -498,11 +496,11 @@ end
 describe 's:definition_bundle()'
 
   before
-    call s:Reg({'signs': s:toggle_sign_defs(1)})
+    call s:Reg({'signs': s:define_sign(1)})
   end
 
   after
-    call s:toggle_sign_defs(0)
+    call s:define_sign(0)
     call s:Reg(0)
   end
 
@@ -557,12 +555,12 @@ describe 's:extract_definition_names()'
     call s:Reg({
       \ 'func': 's:extract_definition_names',
       \ 'bundle_func': 's:definition_bundle',
-      \ 'signs': s:toggle_sign_defs(1)
+      \ 'signs': s:define_sign(1)
       \ })
   end
 
   after
-    call s:toggle_sign_defs(0)
+    call s:define_sign(0)
     call s:Reg(0)
   end
 
@@ -717,23 +715,23 @@ end
 describe 's:extract_sign_ids()'
 
   before
-    let signs = s:toggle_sign_defs(1)
+    let signs = s:define_sign(1)
     call s:Reg({
       \ 'func': 's:extract_sign_ids',
       \ 'bundle_func': 's:sign_bundle',
       \ 'signs': signs,
-      \ 'ids': s:toggle_sign_placement(signs)
+      \ 'ids': s:place_sign(signs)
       \ })
   end
 
   after
-    call s:toggle_sign_placement([])
-    call s:toggle_sign_defs(0)
+    call s:place_sign(0)
+    call s:define_sign(0)
     call s:Reg(0)
   end
 
   it 'should return empty list if no sign in buffer'
-    call s:toggle_sign_placement([])
+    call s:place_sign(0)
 
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
@@ -770,12 +768,12 @@ describe 's:generate_id()'
   before
     call s:Reg({
       \ 'func': 's:generate_id',
-      \ 'signs': s:toggle_sign_defs(1)
+      \ 'signs': s:define_sign(1)
       \ })
   end
 
   after
-    call s:toggle_sign_defs(0)
+    call s:define_sign(0)
     call s:Reg(0)
   end
 
@@ -831,14 +829,14 @@ describe 's:sign_bundle()'
   before
     call s:Reg({
       \ 'func': 's:sign_bundle',
-      \ 'signs': s:toggle_sign_defs(1)
+      \ 'signs': s:define_sign(1)
       \ })
-    call s:toggle_sign_placement(s:Reg('signs'))
+    call s:place_sign(s:Reg('signs'))
   end
 
   after
-    call s:toggle_sign_placement([])
-    call s:toggle_sign_defs(0)
+    call s:place_sign(0)
+    call s:define_sign(0)
     call s:Reg(0)
   end
 
@@ -863,7 +861,7 @@ describe 's:sign_bundle()'
   end
 
   it 'should return strings not contained sign info if no sign in buffer'
-    call s:toggle_sign_placement([])
+    call s:place_sign(0)
     let bundle = Call(s:Reg('func'), bufnr('%'))
 
     Expect type(bundle) == type('')
