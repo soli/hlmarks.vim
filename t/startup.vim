@@ -1,4 +1,4 @@
-execute 'source ' . expand('%:p:h') . '/t/_common/helpers.vim'
+execute 'source ' . expand('%:p:h') . '/t/_common/test_helpers.vim'
 
 runtime! plugin/hlmarks.vim
 
@@ -21,8 +21,8 @@ describe 'plugin/hlmarks.vim'
   end
 
   it 'should define commands'
-    Expect len(_capture('command HlMarksOn')) != 1
-    Expect len(_capture('command HlMarksOff')) != 1
+    Expect len(_Grab_('command HlMarksOn')) != 1
+    Expect len(_Grab_('command HlMarksOff')) != 1
   end
 
 end

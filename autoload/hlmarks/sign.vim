@@ -60,7 +60,7 @@ function! hlmarks#sign#define()
       continue
     endif
 
-    let sign_format = s:fix_format({'g:hlmarks_sign_format_' . mark_type}, mark_specifier)
+    let sign_format = s:fix_sign_format({'g:hlmarks_sign_format_' . mark_type}, mark_specifier)
 
     let line_hl = s:sign.prefix . 'L_' . mark_type
     let gutter_hl = s:sign.prefix . 'G_' . mark_type
@@ -78,7 +78,7 @@ function! hlmarks#sign#define()
     for idx in range(0, last_idx)
       let mark_name = mark_bundle[idx : idx]
       silent execute printf('sign define %s linehl=%s text=%s texthl=%s',
-        \ s:name_with_mark(mark_name),
+        \ s:sign_name_of(mark_name),
         \ line_hl,
         \ substitute(sign_format, mark_specifier, mark_name, ''),
         \ gutter_hl
@@ -90,14 +90,14 @@ endfunction
 "
 " Generate sign state.
 "
-" Retrun: [Dict] sign state (see extract_placed_specs()) 
+" Retrun: [Dict] sign state (see extract_sign_specs()) 
 " Note:   No need to reorder because signs are already ordered when mark is set.
 "
 function! hlmarks#sign#generate_state()
-  return s:extract_placed_specs(
-    \ s:placed_bundle(bufnr('%')),
+  return s:extract_sign_specs(
+    \ s:sign_bundle(),
     \ 0,
-    \ s:pattern()
+    \ s:sign_pattern()
     \ )
 endfunction
 
@@ -111,78 +111,53 @@ function! hlmarks#sign#get_cache()
 endfunction
 
 "
-" Determine whether current buffer state/type is valid for placing sign or not.
-"
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#is_valid_case()
-  let ignore_buffer_type = g:hlmarks_ignore_buffer_type
-  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    == 'help'    )
-    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    == 'quickfix')
-    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        == 1         )
-    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   == 1         )
-    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable == 0         )
-    \ ? 0 : 1
-endfunction
-
-"
-" Determine whether should place sign for a mark or not.
-"
-" Param:  [String] mark: mark name
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#is_valid_mark(mark)
-  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
-endfunction
-
-"
-" Place signs.
-"
-" Param:  [Number] line_no: line no.
-" Param:  [List] sign_units: sign units([[id, name], ..])
-"
-function! hlmarks#sign#place(line_no, sign_units)
-  let buffer_no = bufnr('%')
-  for [sign_id, sign_name] in a:sign_units
-    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign place %s line=%s name=%s buffer=%s',
-      \ sign_id,
-      \ a:line_no,
-      \ sign_name,
-      \ buffer_no
-      \ )
-  endfor
-endfunction
-
-"
 " Place new sign.
 "
 " Param:  [Number] line_no: line number
 " Param:  [String] mark_name: mark name
 "
 function! hlmarks#sign#place_on_mark(line_no, mark_name)
-  let sign_units = [[s:generate_id(), s:name_with_mark(a:mark_name)]]
+  let sign_units = [[s:generate_id(), s:sign_name_of(a:mark_name)]]
 
   if !(g:hlmarks_stacked_signs_order == 1 && g:hlmarks_sort_stacked_signs == 0)
-    let sign_spec = s:extract_placed_specs(
-      \ s:placed_bundle(bufnr('%')),
+    let sign_spec = s:extract_sign_specs(
+      \ s:sign_bundle(),
       \ a:line_no,
-      \ s:pattern()
+      \ s:sign_pattern()
       \ )
 
     " Note: No need to add to 'all(comparing)', because new signs are not placed yet.
     " Note: No need to add to 'ids(removing)', because no need to remove new signs.
     call extend(sign_spec.marks, sign_units)
 
-    let sign_spec = hlmarks#sign#reorder_spec(sign_spec)
+    let sign_spec = s:reorder_spec(sign_spec)
 
     " Note: In this case of adding new sign, signs are surely re-oredered.
-    call hlmarks#sign#remove_with_ids(sign_spec.ids, bufnr('%'))
+    call s:remove_with_ids(sign_spec.ids, bufnr('%'))
     let sign_units = sign_spec.ordered
 
   endif
 
-  call hlmarks#sign#place(a:line_no, sign_units)
+  call s:place(a:line_no, sign_units)
+endfunction
+
+"
+" Place signs according to delta.
+"
+" Param:  [Dict] (a:1) sign specs (past)
+" Param:  [Dict] (a:2) sign specs (current)
+"
+function! hlmarks#sign#place_with_delta(...)
+  let cache = a:0 ? a:1 : hlmarks#sign#get_cache()
+  let snapshot = a:0 >= 2 ? a:2 : hlmarks#sign#generate_state()
+
+  for [line_no, spec] in items(snapshot)
+    if !has_key(cache, line_no) || spec != cache[line_no]
+      let ordered_spec = s:reorder_spec(spec)
+      call s:remove_with_ids(ordered_spec.ids, bufnr('%'))
+      call s:place(line_no, ordered_spec.ordered)
+    endif
+  endfor
 endfunction
 
 "
@@ -193,9 +168,9 @@ endfunction
 function! hlmarks#sign#remove_all(...)
   let buffer_numbers = a:0 ? a:1 : [bufnr('%')]
   for buffer_no in buffer_numbers
-    let bundle = s:placed_bundle(buffer_no)
-    let sign_ids = s:extract_placed_ids(bundle, s:pattern())
-    call hlmarks#sign#remove_with_ids(sign_ids, buffer_no)
+    let bundle = s:sign_bundle(buffer_no)
+    let sign_ids = s:extract_sign_ids(bundle, s:sign_pattern())
+    call s:remove_with_ids(sign_ids, buffer_no)
   endfor
 endfunction
 
@@ -207,69 +182,35 @@ endfunction
 "
 function! hlmarks#sign#remove_on_mark(mark_name, ...)
   let buffer_no = a:0 ? a:1 : bufnr('%')
-  let bundle = s:placed_bundle(buffer_no)
-  let sign_name = '\C\v^' . s:name_with_mark(escape(a:mark_name, s:sign.escape_chars)) . '$'
-  let sign_ids = s:extract_placed_ids(bundle, sign_name)
-  call hlmarks#sign#remove_with_ids(sign_ids, buffer_no)
+  let bundle = s:sign_bundle(buffer_no)
+  let sign_name = '\C\v^' . s:sign_name_of(escape(a:mark_name, s:sign.escape_chars)) . '$'
+  let sign_ids = s:extract_sign_ids(bundle, sign_name)
+  call s:remove_with_ids(sign_ids, buffer_no)
 endfunction
 
 "
-" Remove signs with designated id(s).
+" Determine whether current buffer state/type is valid for placing sign or not.
 "
-" Param:  [List] sign_ids: sign id's
-" Param:  [Number] (a:1) target buffer number(default='%')
+" Return: [Number] determination(0/1)
 "
-function! hlmarks#sign#remove_with_ids(sign_ids, ...)
-  let buffer_no = a:0 ? a:1 : bufnr('%')
-  for id in a:sign_ids
-    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign unplace %s buffer=%s', id, buffer_no)
-  endfor
+function! hlmarks#sign#should_place()
+  let ignore_buffer_type = g:hlmarks_ignore_buffer_type
+  return (match(ignore_buffer_type, '\ch') >= 0 && &buftype    ==? 'help'    )
+    \ || (match(ignore_buffer_type, '\cq') >= 0 && &buftype    ==? 'quickfix')
+    \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        ==  1         )
+    \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   ==  1         )
+    \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable ==  0         )
+    \ ? 0 : 1
 endfunction
 
 "
-" Reorder sign spec.
+" Determine whether should place sign for a mark or not.
 "
-" Param:  [Dict] sign_spec: sign spec(see extract_placed_specs())
-" Return: [Dict] dictionary of re-ordered sign spec as following structure
-"           { ... Same as return value of extract_placed_specs() ...
-"             'ordered':  [[id,name], ..] => ordered sign units }
-" Note:   This function is frequently called.
+" Param:  [String] mark: mark name
+" Return: [Number] determination(0/1)
 "
-function! hlmarks#sign#reorder_spec(sign_spec)
-  let sign_spec = a:sign_spec
-
-  " Note: Sorter function changes passed list(In this case, sign_spec.marks).
-  if g:hlmarks_sort_stacked_signs != 0
-    call sort(sign_spec.marks, 's:sign_names_sorter', {
-      \ 'seq': g:hlmarks_displaying_marks,
-      \ })
-  endif
-
-  " 0: Signs of mark are always placed lower than others.
-  if g:hlmarks_stacked_signs_order == 0
-    let signs = sign_spec.marks + sign_spec.others
-
-  " 1: Signs of mark are sorted but related-position to other signs is as-is.
-  elseif g:hlmarks_stacked_signs_order == 1
-    let signs = []
-    for sign_type in sign_spec.order
-      if sign_type == 1
-        call add(signs, remove(sign_spec.marks, 0))
-      else
-        call add(signs, remove(sign_spec.others, 0))
-      endif
-    endfor
-    call extend(signs, sign_spec.marks)
-
-  " 2: Signs of mark are always placed upper than others.
-  else
-    let signs = sign_spec.others + sign_spec.marks
-  endif
-
-  let sign_spec.ordered = signs
-
-  return sign_spec
+function! hlmarks#sign#should_place_on_mark(mark)
+  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
 endfunction
 
 "
@@ -285,7 +226,7 @@ endfunction
 " Remove sign definitions.
 "
 function! hlmarks#sign#undefine()
-  let defined_names = s:extract_defined_names(s:defined_bundle(), s:pattern())
+  let defined_names = s:extract_definition_names(s:definition_bundle(), s:sign_pattern())
   for sign_name in defined_names
     silent execute printf('sign undefine %s', sign_name)
   endfor
@@ -297,26 +238,11 @@ endfunction
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 "
-" (Sorter function) Sort sign names with defined order.
-"
-" Param:  [List] a:,b: sign unit([id, name])
-" Return: [Number] sort result
-" Note:   This sort function is used with following dictionary.
-"          { 'seq': [String] sequence of character that indicates sort order }
-"
-function! s:sign_names_sorter(a, b) dict
-  let a_idx = stridx(self.seq, s:to_mark_name(a:a[1]))
-  let b_idx = stridx(self.seq, s:to_mark_name(a:b[1]))
-
-  return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
-endfunction
-
-"
 " Get strings of sign definitions.
 "
 " Return: [String] bundle that contains sign definitions
 "
-function! s:defined_bundle()
+function! s:definition_bundle()
   redir => bundle
     silent execute 'sign list'
   redir END
@@ -342,7 +268,7 @@ endfunction
 " Param:  [String] pattern: pattern that matches name
 " Return: [List] list of definition names
 "
-function! s:extract_defined_names(bundle, pattern)
+function! s:extract_definition_names(bundle, pattern)
   let defined_names = []
 
   for crumb in split(a:bundle, "\n")
@@ -356,6 +282,31 @@ function! s:extract_defined_names(bundle, pattern)
 endfunction
 
 "
+" Extract sign id from bundle that is taken from 'sign place' command.
+"
+" Param:  [String] bundle: bundle of placed signs
+" Param:  [String] pattern: pattern that matches name
+" Return: [List] list of extracted sign id
+" Note:   Duplication of id is considered.
+"
+function! s:extract_sign_ids(bundle, pattern)
+  let sign_ids = []
+
+  for crumb in split(a:bundle, "\n")
+    if stridx(crumb, '=') < 0
+      continue
+    endif
+
+    let matched = matchlist(crumb, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(\S+)$')
+    if !empty(matched) && match(matched[3], a:pattern) >= 0
+      call add(sign_ids, str2nr(matched[2], 10))
+    endif
+  endfor
+
+  return sign_ids
+endfunction
+
+"
 " Extract sign spec(s) from bundle that is taken from 'sign place' command.
 "
 " Param:  [String] bundle: bundle of placed signs
@@ -363,10 +314,11 @@ endfunction
 "                           (If pased '0', returns sign specs for all lines)
 " Param:  [String] pattern: pattern that matches name as mark's
 " Return: [Dict] dictionary of extracted sign spec(s) as following structure
+"          Note that values in all keys are ordered OLD->NEW order.
+"          (FYI) In result of 'sign place..' command, ordered NEW->OLD.
 "          <line_no != 0>
 "           { 'marks':  [[id,name], ..] => sign units as mark's sign
 "             'others': (same sa above) => sign units as other's sign
-"             'all':    (same sa above) => all sign units on designated line
 "             'ids':    [id, id, ..]    => all id of signs
 "             'order':  [n, n, ..]      => order list by sign type,
 "                                          n = 1(mark's) or 0 (other's) }
@@ -374,12 +326,11 @@ endfunction
 "           { 'line_no': { spec same as above }, .. }
 " Note:   Duplication of id is considered.
 "
-function! s:extract_placed_specs(bundle, line_no, pattern)
+function! s:extract_sign_specs(bundle, line_no, pattern)
   let sign_specs = {}
   let sign_spec = {
     \ 'marks': [],
     \ 'others': [],
-    \ 'all': [],
     \ 'ids': [],
     \ 'order': []
     \ }
@@ -410,38 +361,12 @@ function! s:extract_placed_specs(bundle, line_no, pattern)
       call insert(sign_specs[line_no].order, 0)
     endif
 
-    call insert(sign_specs[line_no].all, sign)
-    call add(sign_specs[line_no].ids, sign_id)
+    call insert(sign_specs[line_no].ids, sign_id)
   endfor
 
   return a:line_no == 0
     \ ? sign_specs
     \ : (has_key(sign_specs, a:line_no) ? sign_specs[a:line_no] : sign_spec)
-endfunction
-
-"
-" Extract sign id from bundle that is taken from 'sign place' command.
-"
-" Param:  [String] bundle: bundle of placed signs
-" Param:  [String] pattern: pattern that matches name
-" Return: [List] list of extracted sign id
-" Note:   Duplication of id is considered.
-"
-function! s:extract_placed_ids(bundle, pattern)
-  let sign_ids = []
-
-  for crumb in split(a:bundle, "\n")
-    if stridx(crumb, '=') < 0
-      continue
-    endif
-
-    let matched = matchlist(crumb, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(\S+)$')
-    if !empty(matched) && match(matched[3], a:pattern) >= 0
-      call add(sign_ids, str2nr(matched[2], 10))
-    endif
-  endfor
-
-  return sign_ids
 endfunction
 
 "
@@ -455,7 +380,7 @@ endfunction
 "         3. Only one mark specifier must be in format.
 "         4. Specifier is added to front if not exist.
 "
-function! s:fix_format(format, specifier)
+function! s:fix_sign_format(format, specifier)
   let escaped_specifier = escape(a:specifier, '%')
   let format = substitute(a:format, '\v(' . escaped_specifier . ')+', a:specifier, 'g')
   let splited = split(format, '\v' . escaped_specifier, 1)
@@ -490,8 +415,8 @@ endfunction
 "         And it's is very slow.
 "
 function! s:generate_id()
-  let bundle = s:placed_bundle(bufnr('%'))
-  let sign_ids = s:extract_placed_ids(bundle, '')
+  let bundle = s:sign_bundle()
+  let sign_ids = s:extract_sign_ids(bundle, '')
   let id = empty(sign_ids) ? 1 : max(sign_ids) + 1
 
   " Reuse lower id.
@@ -510,22 +435,106 @@ function! s:generate_id()
 endfunction
 
 "
-" Convert mark name to sign name
+" Convert sign name to mark name.
 "
-" Param:  [String] mark_name: mark name
-" Return: [String] sign name
+" Param:  [String] sign_name: sign name
+" Return: [String] mark name
 "
-function! s:name_with_mark(mark_name)
-  return s:sign.prefix . a:mark_name
+function! s:mark_name_of(sign_name)
+  return substitute(a:sign_name, s:sign.prefix, '', '')
 endfunction
 
 "
-" Get search pattern with sign.
+" (Sorter function) Sort sign names with defined order.
 "
-" Return: [String] pattern
+" Param:  [List] a:,b: sign unit([id, name])
+" Return: [Number] sort result
+" Note:   This sort function is used with following dictionary.
+"          { 'seq': [String] sequence of character that indicates sort order }
 "
-function! s:pattern()
-  return '\C^' . s:sign.prefix
+function! s:name_sorter(a, b) dict
+  let a_idx = stridx(self.seq, s:mark_name_of(a:a[1]))
+  let b_idx = stridx(self.seq, s:mark_name_of(a:b[1]))
+
+  return a_idx < b_idx ? -1 : (a_idx > b_idx ? 1 : 0)
+endfunction
+
+"
+" Place signs.
+"
+" Param:  [Number] line_no: line no.
+" Param:  [List] sign_units: sign units([[id, name], ..])
+"
+function! s:place(line_no, sign_units)
+  let buffer_no = bufnr('%')
+  for [sign_id, sign_name] in a:sign_units
+    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
+    silent! execute printf('sign place %s line=%s name=%s buffer=%s',
+      \ sign_id,
+      \ a:line_no,
+      \ sign_name,
+      \ buffer_no
+      \ )
+  endfor
+endfunction
+
+"
+" Remove signs with designated id(s).
+"
+" Param:  [List] sign_ids: sign id's
+" Param:  [Number] (a:1) target buffer number(default='%')
+"
+function! s:remove_with_ids(sign_ids, ...)
+  let buffer_no = a:0 ? a:1 : bufnr('%')
+  for id in a:sign_ids
+    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
+    silent! execute printf('sign unplace %s buffer=%s', id, buffer_no)
+  endfor
+endfunction
+
+"
+" Reorder sign spec.
+"
+" Param:  [Dict] sign_spec: sign spec(see extract_sign_specs())
+" Return: [Dict] dictionary of re-ordered sign spec as following structure
+"           { ... Same as return value of extract_sign_specs() ...
+"             'ordered':  [[id,name], ..] => ordered sign units }
+" Note:   This function is frequently called.
+"
+function! s:reorder_spec(sign_spec)
+  let sign_spec = a:sign_spec
+
+  " Note: Sorter function changes passed list(In this case, sign_spec.marks).
+  if g:hlmarks_sort_stacked_signs != 0
+    call sort(sign_spec.marks, 's:name_sorter', {
+      \ 'seq': g:hlmarks_displaying_marks,
+      \ })
+  endif
+
+  " 0: Signs of mark are always placed lower than others.
+  if g:hlmarks_stacked_signs_order == 0
+    let signs = sign_spec.marks + sign_spec.others
+
+  " 1: Signs of mark are sorted but related-position to other signs is as-is.
+  elseif g:hlmarks_stacked_signs_order == 1
+    let signs = []
+    for sign_type in sign_spec.order
+      if sign_type == 1
+        call add(signs, remove(sign_spec.marks, 0))
+      else
+        call add(signs, remove(sign_spec.others, 0))
+      endif
+    endfor
+    call extend(signs, sign_spec.marks)
+
+  " 2: Signs of mark are always placed upper than others.
+  else
+    let signs = sign_spec.others + sign_spec.marks
+  endif
+
+  let sign_spec.ordered = signs
+
+  return sign_spec
 endfunction
 
 "
@@ -538,23 +547,33 @@ endfunction
 "           - Grouped by each line-no.
 "           - In group of line-no, ordered by 'placed last->first'.
 "
-function! s:placed_bundle(buffer_no)
+function! s:sign_bundle(...)
+  let buffer_no = a:0 ? a:1 : bufnr('%')
   redir => bundle
     " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('sign place buffer=%s', a:buffer_no)
+    silent! execute printf('sign place buffer=%s', buffer_no)
   redir END
 
   return bundle
 endfunction
 
 "
-" Convert sign name to mark name.
+" Convert mark name to sign name
 "
-" Param:  [String] sign_name: sign name
-" Return: [String] mark name
+" Param:  [String] mark_name: mark name
+" Return: [String] sign name
 "
-function! s:to_mark_name(sign_name)
-  return substitute(a:sign_name, s:sign.prefix, '', '')
+function! s:sign_name_of(mark_name)
+  return s:sign.prefix . a:mark_name
+endfunction
+
+"
+" Get search pattern with sign.
+"
+" Return: [String] pattern
+"
+function! s:sign_pattern()
+  return '\C^' . s:sign.prefix
 endfunction
 
 

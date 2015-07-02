@@ -1,4 +1,4 @@
-execute 'source ' . expand('%:p:h') . '/t/_common/helpers.vim'
+execute 'source ' . expand('%:p:h') . '/t/_common/test_helpers.vim'
 
 runtime! plugin/hlmarks.vim
 

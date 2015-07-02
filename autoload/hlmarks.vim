@@ -155,7 +155,7 @@ function! hlmarks#set_mark(...)
   "    Remove mark even if passed mark should not be signed.
   if line_no == target_line && buffer_no == bufnr('%')
     if hlmarks#mark#can_remove(mark)
-      if hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#is_valid_case()
+      if hlmarks#sign#should_place_on_mark(mark) && hlmarks#sign#should_place()
         call hlmarks#sign#remove_on_mark(mark)
         call hlmarks#mark#remove(mark)
         call hlmarks#sign#set_cache()
@@ -169,7 +169,7 @@ function! hlmarks#set_mark(...)
   endif
 
   " 2) Set mark even if passed mark should not be signed.
-  if !(hlmarks#sign#is_valid_mark(mark) && hlmarks#sign#is_valid_case())
+  if !(hlmarks#sign#should_place_on_mark(mark) && hlmarks#sign#should_place())
     call hlmarks#mark#set(mark)
     return
   endif
@@ -308,7 +308,7 @@ endfunction
 " Note:   Leave echoes for further debug.
 "
 function! s:update_signs()
-  if !hlmarks#sign#is_valid_case()
+  if !hlmarks#sign#should_place()
     return
   endif
 
@@ -329,16 +329,8 @@ function! s:update_signs()
   "    by other plugins, by user-operations, etc.
   "    Note: sign state contains line that only has sign marked by others.
   elseif sign_snapshot != sign_cache
-    for [line_no, sign_spec] in items(sign_snapshot)
-      if has_key(sign_cache, line_no) != 0 && sign_spec == sign_cache[line_no]
-        continue
-      endif
-
-      let sign_spec = hlmarks#sign#reorder_spec(sign_spec)
-      call hlmarks#sign#remove_with_ids(sign_spec.ids, bufnr('%'))
-      call hlmarks#sign#place(line_no, sign_spec.ordered)
-      call hlmarks#sign#set_cache()
-    endfor
+    call hlmarks#sign#place_with_delta(sign_cache, sign_snapshot)
+    call hlmarks#sign#set_cache()
 
     " echo reltimestr(reltime()) . '(by change of signs)'
   else
