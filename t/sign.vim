@@ -390,12 +390,15 @@ describe 'remove_all()'
   before
     call s:Local(1)
     call s:Local({'prefix': s:sign_prefix()})
+
+    let signs = s:define_sign(1)
+
     call s:Reg({
-      \ 'signs': s:define_sign(1),
+      \ 'signs': signs,
       \ 'bundle_func': 's:sign_bundle',
       \})
 
-    call s:place_sign(s:Reg('signs'))
+    call s:place_sign(signs)
   end
 
   after
@@ -644,7 +647,7 @@ describe 'reorder_spec()'
     call s:Reg({'sign_spec_tmpl': {
       \ 'marks':  [ [10, 'SLF_a'], [11, 'SLF_b'] ],
       \ 'others': [ [21, 'OTS_2'], [20, 'OTS_1'] ],
-      \ 'order':  [ 1, 0, 0, 1 ]
+      \ 'order':  [ 1, 0, 0, 1 ],
       \ }})
 
     let g:hlmarks_displaying_marks = 'ba'
@@ -718,7 +721,7 @@ describe 's:fix_sign_format()'
   before
     call s:Reg({
       \ 'func': 's:fix_sign_format',
-      \ 'ms': '%m'
+      \ 'ms': '%m',
       \ })
   end
 
@@ -845,7 +848,7 @@ describe 's:extract_definition_names()'
     call s:Reg({
       \ 'func': 's:extract_definition_names',
       \ 'bundle_func': 's:definition_bundle',
-      \ 'signs': s:define_sign(1)
+      \ 'signs': s:define_sign(1),
       \ })
   end
 
@@ -891,7 +894,7 @@ describe 's:extract_sign_specs'
         \ 'marks': [],
         \ 'others': [],
         \ 'ids': [],
-        \ 'order': []
+        \ 'order': [],
         \ }
       \ })
 
@@ -940,7 +943,7 @@ describe 's:extract_sign_specs'
       \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
       \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
       \ 'ids':    [ 26, 22, 21, 25 ],
-      \ 'order':  [ 0, 1, 1, 0 ]
+      \ 'order':  [ 0, 1, 1, 0 ],
       \ }
 
     Expect Call(func_name, bundle, 2, '^MYS') == expected
@@ -953,7 +956,7 @@ describe 's:extract_sign_specs'
       \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
       \ 'others': [],
       \ 'ids':    [ 12, 11 ],
-      \ 'order':  [ 1, 1 ]
+      \ 'order':  [ 1, 1 ],
       \ }
 
     Expect Call(func_name, bundle, 1, '^MYS') == expected
@@ -966,7 +969,7 @@ describe 's:extract_sign_specs'
       \ 'marks':  [],
       \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
       \ 'ids':    [ 32, 31 ],
-      \ 'order':  [ 0, 0 ]
+      \ 'order':  [ 0, 0 ],
       \ }
 
     Expect Call(func_name, bundle, 3, '^MYS') == expected
@@ -980,19 +983,19 @@ describe 's:extract_sign_specs'
         \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
         \ 'others': [],
         \ 'ids':    [ 12, 11 ],
-        \ 'order':  [ 1, 1 ]
+        \ 'order':  [ 1, 1 ],
         \ },
       \ '2': {
         \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
         \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
         \ 'ids':    [ 26, 22, 21, 25 ],
-        \ 'order':  [ 0, 1, 1, 0 ]
+        \ 'order':  [ 0, 1, 1, 0 ],
         \ },
       \ '3': {
         \ 'marks':  [],
         \ 'others': [ [32, 'OTS_4'], [31, 'OTS_3'] ],
         \ 'ids':    [ 32, 31 ],
-        \ 'order':  [ 0, 0 ]
+        \ 'order':  [ 0, 0 ],
         \ }
       \ }
 
@@ -1006,11 +1009,12 @@ describe 's:extract_sign_ids()'
 
   before
     let signs = s:define_sign(1)
+
     call s:Reg({
       \ 'func': 's:extract_sign_ids',
       \ 'bundle_func': 's:sign_bundle',
       \ 'signs': signs,
-      \ 'ids': s:place_sign(signs)
+      \ 'ids': s:place_sign(signs),
       \ })
   end
 
@@ -1058,7 +1062,7 @@ describe 's:generate_id()'
   before
     call s:Reg({
       \ 'func': 's:generate_id',
-      \ 'signs': s:define_sign(1)
+      \ 'signs': s:define_sign(1),
       \ })
   end
 
@@ -1119,7 +1123,7 @@ describe 's:sign_bundle()'
   before
     call s:Reg({
       \ 'func': 's:sign_bundle',
-      \ 'signs': s:define_sign(1)
+      \ 'signs': s:define_sign(1),
       \ })
     call s:place_sign(s:Reg('signs'))
   end
