@@ -725,7 +725,7 @@ describe 's:extract_definition_names()'
 end
 
 
-describe 's:extract_sign_specs'
+describe 's:extract_sign_specs()'
 
   before
     call s:Reg({
@@ -941,7 +941,7 @@ describe 's:generate_id()'
 end
 
 
-describe 'place()'
+describe 's:place()'
 
   it 'should place signs according to passed specs'
     let sign_names = s:define_sign(1)
