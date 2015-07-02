@@ -219,18 +219,29 @@ endfunction
 function! s:bundle(...)
   let mark_chars = a:0 ? a:1 : s:mark.available
 
-  redir => bundle
-    " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-    silent! execute printf('marks %s', mark_chars)
-  redir END
+  " If execute mark command with invisibles, it cause error, so unmerge them.
+  let invisibles = []
+  for mark in s:mark.invisible_marks
+    if stridx(mark_chars, mark) >= 0
+      call add(invisibles, mark)
+      let mark_chars = substitute(mark_chars, mark, '', 'g')
+    endif
+  endfor
+
+  if mark_chars != ''
+    redir => bundle
+      " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
+      silent! execute printf('marks %s', mark_chars)
+    redir END
+  else
+    let bundle = ''
+  endif
 
   " Append specs of invisible(not be presented with :marks command) marks if needed.
   let addings = []
-  for mark in s:mark.invisible_marks
-    if stridx(mark_chars, mark) >= 0
-      let [_null_, line_no] = hlmarks#mark#pos(mark)
-      call add(addings, printf(' %s  %d  0  (invisible)', mark, line_no))
-    endif
+  for mark in invisibles
+    let [_null_, line_no] = hlmarks#mark#pos(mark)
+    call add(addings, printf(' %s  %d  0  (invisible)', mark, line_no))
   endfor
 
   return join(([bundle] + addings), "\n")
