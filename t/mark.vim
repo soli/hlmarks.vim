@@ -36,10 +36,10 @@ function! s:prepare_mark(...)
   let other_spec = {}
   let line_no = 1
   for name in param['o']
+    put =['']
     call cursor(line_no, 1)
     execute 'normal m'.name
     let other_spec[name] = line_no
-    put =['']
     let line_no += 1
   endfor
 
@@ -48,10 +48,10 @@ function! s:prepare_mark(...)
   let current_spec = {}
   let line_no = 1
   for name in param['c']
+    put =['']
     call cursor(line_no, 1)
     execute 'normal m'.name
     let current_spec[name] = line_no
-    put =['']
     let line_no += 1
   endfor
 
@@ -255,7 +255,7 @@ describe 'pos()'
     call s:prepare_mark(0)
 
     " Special marks that needed single test.
-    let marks = ['`']
+    let marks = ['`', '[', ']']
     for name in marks
       let mark_data = s:prepare_mark({'c': [name], 'o': []})
       let buffer_no = bufnr('%')
