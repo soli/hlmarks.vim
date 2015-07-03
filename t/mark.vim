@@ -189,6 +189,86 @@ describe 'generate_state()'
 end
 
 
+describe 'get_cache()'
+
+  it 'should return empty hash if cache is empty'
+    let cache = hlmarks#mark#get_cache()
+
+    Expect cache == {}
+  end
+
+  it 'should return cache that is set by set_cache()'
+    let mark_data = s:prepare_mark()
+    let mark_spec = mark_data.c
+
+    call hlmarks#mark#set_cache()
+
+    let cache = hlmarks#mark#get_cache()
+
+    Expect len(cache) == len(mark_spec)
+
+    for [name, line_no] in items(cache)
+      Expect has_key(mark_spec, name) to_be_true
+      Expect mark_spec[name] == line_no
+    endfor
+
+    call s:prepare_mark(0)
+  end
+
+end
+
+
+describe 'is_valid()'
+
+  before
+    call s:Local(1)
+    call s:Local({'enable_set_manually': 'abc'})
+  end
+
+  after
+    call s:Local(0)
+  end
+
+  it 'should return true passed mark has correct length and is in predefined list'
+    Expect hlmarks#mark#is_valid('a') to_be_true
+  end
+
+  it 'should return false passed mark has 2 or more length or is not in list'
+    Expect hlmarks#mark#is_valid('d') to_be_false
+    Expect hlmarks#mark#is_valid('aa') to_be_false
+  end
+
+end
+
+
+describe 'pos()'
+
+  it 'should return line/buffer number of passed mark'
+    let marks = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''<>', '\zs')
+    let mark_data = s:prepare_mark({'c': marks, 'o': []})
+    let buffer_no = bufnr('%')
+
+    for [name, line_no] in items(mark_data.c)
+      Expect hlmarks#mark#pos(name) == [buffer_no, line_no]
+    endfor
+
+    call s:prepare_mark(0)
+
+    " Special marks that needed single test.
+    let marks = ['`']
+    for name in marks
+      let mark_data = s:prepare_mark({'c': [name], 'o': []})
+      let buffer_no = bufnr('%')
+
+      Expect hlmarks#mark#pos(name) == [buffer_no, mark_data.c[name]]
+
+      call s:prepare_mark(0)
+    endfor
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
