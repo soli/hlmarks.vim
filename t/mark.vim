@@ -170,6 +170,27 @@ describe 'generate_name()'
 end
 
 
+describe 'generate_state()'
+
+  it 'should generate current mark state'
+    let mark_data = s:prepare_mark()
+    let mark_spec = mark_data.c.spec
+
+    let state = hlmarks#mark#generate_state()
+
+    Expect len(state) == len(mark_spec)
+
+    for [name, line_no] in items(state)
+      Expect has_key(mark_spec, name) to_be_true
+      Expect mark_spec[name] == line_no
+    endfor
+
+    call s:prepare_mark(0)
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
