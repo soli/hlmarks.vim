@@ -40,7 +40,7 @@ endfunction
 
 
 function! s:prepare_mark(mode, ...)
-  let mark_list = a:0 ? a:1 : {'c': ['a', 'b', 'C'], 'o': ['A', 'B']}
+  let mark_list = a:0 ? a:1 : {'c': ['a', 'A'], 'o': ['b', 'B']}
 
   if type(a:mode) == type(1) && a:mode == 0
     let mark_str = join(mark_list['c'], '') . join(mark_list['o'], '')
@@ -77,10 +77,23 @@ function! s:prepare_mark(mode, ...)
   let merged = deepcopy(current_spec, 1)
   call extend(merged, deepcopy(other_spec, 1))
 
+  let globals = {}
+  for [name, line_no] in items(current_spec)
+    if name =~ '\v^\u|\d$'
+      let globals[name] = line_no
+    endif
+  endfor
+  for [name, line_no] in items(other_spec)
+    if name =~ '\v^\u|\d$'
+      let globals[name] = line_no
+    endif
+  endfor
+
   return {
     \ 'c': {'no': current_bno, 'spec': current_spec},
     \ 'o': {'no': other_bno, 'spec': other_spec},
     \ 'a': merged,
+    \ 'g': globals,
     \ }
 endfunction
 
