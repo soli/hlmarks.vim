@@ -22,23 +22,6 @@ function! s:Local(subject)
 endfunction
 
 
-function! s:place_mark(...)
-  let param = a:0 ? a:1 : ['a', 'b', 'c']
-
-  if type(param) == type(1) && param == 0
-    delmarks!
-    return []
-  endif
-
-  call cursor(1, 1)
-  for name in param
-    execute 'normal m'.name
-  endfor
-
-  return param
-endfunction
-
-
 function! s:prepare_mark(mode, ...)
   let mark_list = a:0 ? a:1 : {'c': ['a', 'A'], 'o': ['b', 'B']}
 
@@ -115,55 +98,59 @@ describe 's:bundle()'
     call s:Reg(0)
   end
 
-  it 'should return info for designated mark as single strings crumb'
-    let mark_names = s:place_mark()
-    let bundle = Call(s:Reg('func'), join(mark_names, ''))
+  it 'should return info for designated mark in current buffer(but globals in others) as single strings crumb'
+    " c(a A), o(b B) =(all)=> a, A, B
+    let mark_data = s:prepare_mark(1)
 
-    Expect type(bundle) == type('')
+    let bundle = Call(s:Reg('func'), join(keys(mark_data.a), ''))
 
-    for name in mark_names
-      Expect bundle =~# '\v'.name.'\s+1'
+    for [name, line_no] in items(mark_data.c.spec)
+      Expect bundle =~# '\v'.name.'\s+'.line_no.'\D+'
     endfor
 
-    call s:place_mark(0)
+    for [name, line_no] in items(mark_data.g)
+      Expect bundle =~# '\v'.name.'\s+'.line_no.'\D+'
+    endfor
+
+    call s:prepare_mark(0)
   end
 
   it 'should return info for invisible marks that normally can not get by command'
-    let mark_names = s:place_mark()
+    let mark_data = s:prepare_mark(1)
     let invisibles = ['(', ')', '{', '}']
+
     let bundle = Call(s:Reg('func'), join(invisibles, ''))
 
-    Expect type(bundle) == type('')
     Expect bundle !~? 'error'
 
-    for name in mark_names
-      Expect bundle !~# '\v'.name.'\s+1'
+    for name in keys(mark_data.a)
+      Expect bundle !~# '\v'.name.'\s+'
     endfor
 
     for name in invisibles
-      Expect bundle =~# '\v'.escape(name, join(invisibles, '')).'\s+1.{-1,}\(invisible\)'
+      Expect bundle =~# '\v'.escape(name, join(invisibles, '')).'\s+\d{1,}.{-1,}\(invisible\)'
     endfor
 
-    call s:place_mark(0)
+    call s:prepare_mark(0)
   end
 
   it 'should return correct info if mixed(normal and invisible) marks are designated'
-    let mark_names = s:place_mark()
+    let mark_data = s:prepare_mark(1)
     let invisibles = ['(', ')', '{', '}']
-    let bundle = Call(s:Reg('func'), join((mark_names + invisibles), ''))
 
-    Expect type(bundle) == type('')
+    let bundle = Call(s:Reg('func'), join((keys(mark_data.c.spec) + invisibles), ''))
+
     Expect bundle !~? 'error'
 
-    for name in mark_names
-      Expect bundle =~# '\v'.name.'\s+1'
+    for [name, line_no] in items(mark_data.c.spec)
+      Expect bundle =~# '\v'.name.'\s+'.line_no.'\D+'
     endfor
 
     for name in invisibles
-      Expect bundle =~# '\v'.escape(name, join(invisibles, '')).'\s+1.{-1,}\(invisible\)'
+      Expect bundle =~# '\v'.escape(name, join(invisibles, '')).'\s+\d{1,}.{-1,}\(invisible\)'
     endfor
 
-    call s:place_mark(0)
+    call s:prepare_mark(0)
   end
 
 end
