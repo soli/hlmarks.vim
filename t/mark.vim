@@ -269,6 +269,43 @@ describe 'pos()'
 end
 
 
+describe 'remove()'
+
+  it 'should try to remove passed any mark with suppressing errors'
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>[]', '\zs')
+    let enable_remove = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]'
+    let enable_remove_with_escape = ['"']
+    let unable_remove = '`''(){}' " '`' is appears as `'` in marks command result.
+
+    let mark_data = s:prepare_mark({'c': enable_set_manually, 'o': []})
+
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    call hlmarks#mark#remove(enable_remove)
+    call hlmarks#mark#remove(join(enable_remove_with_escape, ''))
+    call hlmarks#mark#remove(unable_remove)
+
+    let bundle = _Grab_('marks')
+
+    for name in enable_set_manually + enable_remove_with_escape
+      for crumb in bundle
+        Expect crumb !~# '\v^\s+'.name.'\s+\d'
+      endfor
+    endfor
+
+    call s:prepare_mark(0)
+  end
+
+end
+
+
+
+
+
+
+
+
 describe 's:bundle()'
 
   before
