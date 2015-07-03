@@ -272,8 +272,8 @@ end
 describe 'remove()'
 
   it 'should try to remove passed any mark with suppressing errors'
-    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>[]', '\zs')
-    let enable_remove = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]'
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`''<>[]', '\zs')
+    let enable_remove = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]', '\zs')
     let enable_remove_with_escape = ['"']
     let unable_remove = '`''(){}' " '`' is appears as `'` in marks command result.
 
@@ -282,15 +282,15 @@ describe 'remove()'
     " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
     execute "normal Inew text \<Esc>"
 
-    call hlmarks#mark#remove(enable_remove)
+    call hlmarks#mark#remove(join(enable_remove, ''))
     call hlmarks#mark#remove(join(enable_remove_with_escape, ''))
     call hlmarks#mark#remove(unable_remove)
 
     let bundle = _Grab_('marks')
 
-    for name in enable_set_manually + enable_remove_with_escape
+    for name in enable_remove + enable_remove_with_escape
       for crumb in bundle
-        Expect crumb !~# '\v^\s+'.name.'\s+\d'
+        Expect crumb !~# '\v^\s+'.escape(name, '.^[]').'\s+\d'
       endfor
     endfor
 
@@ -298,12 +298,6 @@ describe 'remove()'
   end
 
 end
-
-
-
-
-
-
 
 
 describe 's:bundle()'
