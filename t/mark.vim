@@ -33,7 +33,6 @@ function! s:prepare_mark(...)
     return {}
   endif
 
-  let other_bno = bufnr('%')
   let other_spec = {}
   let line_no = 1
   for name in param['o']
@@ -46,7 +45,6 @@ function! s:prepare_mark(...)
 
   new
 
-  let current_bno = bufnr('%')
   let current_spec = {}
   let line_no = 1
   for name in param['c']
@@ -73,8 +71,8 @@ function! s:prepare_mark(...)
   endfor
 
   return {
-    \ 'c': {'no': current_bno, 'spec': current_spec},
-    \ 'o': {'no': other_bno, 'spec': other_spec},
+    \ 'c': current_spec,
+    \ 'o': other_spec,
     \ 'a': merged,
     \ 'g': globals,
     \ }
@@ -110,7 +108,7 @@ describe 'covered()'
 
   it 'should return local/global mark specs only in current buffer'
     let mark_data = s:prepare_mark()
-    let mark_spec = mark_data.c.spec
+    let mark_spec = mark_data.c
 
     let result = hlmarks#mark#covered()
 
@@ -174,7 +172,7 @@ describe 'generate_state()'
 
   it 'should generate current mark state'
     let mark_data = s:prepare_mark()
-    let mark_spec = mark_data.c.spec
+    let mark_spec = mark_data.c
 
     let state = hlmarks#mark#generate_state()
 
@@ -213,7 +211,7 @@ describe 's:bundle()'
 
     let bundle = Call(s:Reg('func'), join(keys(mark_data.a), ''))
 
-    for [name, line_no] in items(mark_data.c.spec)
+    for [name, line_no] in items(mark_data.c)
       Expect bundle =~# '\v'.name.'\s+'.line_no.'\D+'
     endfor
 
@@ -247,11 +245,11 @@ describe 's:bundle()'
     let mark_data = s:prepare_mark()
     let invisibles = ['(', ')', '{', '}']
 
-    let bundle = Call(s:Reg('func'), join((keys(mark_data.c.spec) + invisibles), ''))
+    let bundle = Call(s:Reg('func'), join((keys(mark_data.c) + invisibles), ''))
 
     Expect bundle !~? 'error'
 
-    for [name, line_no] in items(mark_data.c.spec)
+    for [name, line_no] in items(mark_data.c)
       Expect bundle =~# '\v'.name.'\s+'.line_no.'\D+'
     endfor
 
@@ -280,7 +278,7 @@ describe 's:extract()'
 
   it 'should extract all mark info from single strings crumb'
     let mark_data = s:prepare_mark()
-    let mark_spec = deepcopy(mark_data.c.spec, 1)
+    let mark_spec = deepcopy(mark_data.c, 1)
     call extend(mark_spec, mark_data.g)
     let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
 
@@ -298,7 +296,7 @@ describe 's:extract()'
 
   it 'should extract all mark info except global in other buffer'
     let mark_data = s:prepare_mark()
-    let current_spec = mark_data.c.spec
+    let current_spec = mark_data.c
     let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
 
     let result = Call(s:Reg('func'), bundle, bufnr('%'))
