@@ -82,6 +82,94 @@ endfunction
 
 
 
+describe 'can_remove()'
+
+  before
+    call s:Local(1)
+  end
+
+  after
+    call s:Local(0)
+  end
+
+  it 'should return true if designated mark is not in list of unable-remove-marks'
+    Expect hlmarks#mark#can_remove('a') to_be_true
+  end
+
+  it 'should return false if designated mark is in list of unable-remove-marks'
+    Expect hlmarks#mark#can_remove("'") to_be_false
+
+    call s:Local({'unable_remove': s:Local('unable_remove').'a'})
+    Expect hlmarks#mark#can_remove('a') to_be_false
+  end
+
+end
+
+
+describe 'covered()'
+
+  it 'should return local/global mark specs only in current buffer'
+    let mark_data = s:prepare_mark(1)
+    let mark_spec = mark_data.c.spec
+
+    let result = hlmarks#mark#covered()
+
+    Expect len(result) == len(mark_spec)
+
+    for [name, line_no] in items(result)
+      Expect has_key(mark_spec, name) to_be_true
+      Expect line_no == mark_spec[name]
+    endfor
+
+    call s:prepare_mark(0)
+  end
+
+  it 'should return empty dict if no mark is placed'
+    Expect hlmarks#mark#covered() == {}
+  end
+
+end
+
+
+describe 'generate_name()'
+
+  before
+    call s:Local(1)
+  end
+
+  after
+    call s:Local(0)
+  end
+
+  it 'should return next character that is not used yet'
+    let marks = {'c': ['a', 'b'], 'o': []}
+    let mark_data = s:prepare_mark(1, marks)
+
+    Expect hlmarks#mark#generate_name() == 'c'
+
+    call s:prepare_mark(0, marks)
+  end
+
+  it 'should not return alphabetical global marks(A-Z)'
+    let automark_candidate = s:Local('enable_automark')
+
+    Expect automark_candidate !~# '\v[A-Z0-9]'
+  end
+
+  it 'should return empty string if all marks are used'
+    let marks = {'c': ['a', 'b'], 'o': []}
+    let mark_data = s:prepare_mark(1, marks)
+
+    call s:Local({'enable_automark': 'ab'})
+
+    Expect hlmarks#mark#generate_name() == ''
+
+    call s:prepare_mark(0, marks)
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
