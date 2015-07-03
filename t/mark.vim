@@ -169,10 +169,11 @@ describe 's:extract()'
     call s:Reg(0)
   end
 
-  it 'should extract all marks info from single strings crumb'
+  it 'should extract all mark info from single strings crumb'
     let mark_data = s:prepare_mark(1)
-    let mark_spec = mark_data.a
-    let bundle = Call(s:Reg('bundle_func'), join(keys(mark_spec), ''))
+    let mark_spec = deepcopy(mark_data.c.spec, 1)
+    call extend(mark_spec, mark_data.g)
+    let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
 
     let result = Call(s:Reg('func'), bundle)
 
@@ -186,7 +187,7 @@ describe 's:extract()'
     call s:prepare_mark(0)
   end
 
-  it 'should extract all marks info except global in other buffer'
+  it 'should extract all mark info except global in other buffer'
     let mark_data = s:prepare_mark(1)
     let current_spec = mark_data.c.spec
     let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
