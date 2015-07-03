@@ -115,8 +115,6 @@ endfunction
 "
 " Param:  [String] mark: candidate mark 
 " Return: [Number] determination (1/0)
-" Note:   Mark '[' and ']' can not specify line position, so except them from
-"         predefined list.
 "
 function! hlmarks#mark#is_valid(mark)
   return strlen(a:mark) == 1 && stridx(s:mark.enable_set_manually, a:mark) >= 0
@@ -127,7 +125,6 @@ endfunction
 "
 " Param:  [String] mark: mark
 " Return: [List] list as [buffer-no, line-no]
-" Note:   Mark '[' and ']' can not specify line position by them attribute.
 "
 function! hlmarks#mark#pos(mark)
   " Return value of getpos is [buffer-no, line-no, column-pos, offset].
