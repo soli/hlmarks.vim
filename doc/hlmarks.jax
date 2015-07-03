@@ -137,9 +137,9 @@
         現在のマークに基づいてハイライトとマーク名を更新します。
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
-        a-zA-Z の範囲で、'a' から順に未使用のマークを置きます。
+        a-z の範囲で、'a' から順に未使用のマークを置きます。
         設置されたマークが、ハイライトとマーク名表示の対象かどうかに係わらず、
-        常に a-zA-Z の文字が使用されます。
+        常に a-z の文字が使用されます。
         （|hlmarks_displaying_marks| も参照してください）
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*

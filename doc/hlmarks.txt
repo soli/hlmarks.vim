@@ -142,9 +142,9 @@ KEY MAPPINGS                                                *hlmarks-mappings*
         Update the highlight and mark name on the basis of the current mark.
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
-        In the range of a-zA-Z, unused mark is put in order from 'a'.
+        In the range of a-z, unused mark is put in order from 'a'.
         Regardless of whether put mark is allowed to highlight and display 
-        name or not, always the character of a-zA-Z is used.
+        name or not, always the character of a-z is used.
         (Also refer to |hlmarks_displaying_marks|)
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*

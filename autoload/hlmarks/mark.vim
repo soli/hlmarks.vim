@@ -18,7 +18,7 @@ let s:mark = {
   \ 'enable_set_manually': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`^<>[]',
   \ 'enable_remove': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.`^<>[]"',
   \ 'unable_remove': '''(){}',
-  \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyz',
   \ 'set_automatically': '"^.(){}'
   \ }
 
@@ -68,7 +68,7 @@ endfunction
 "
 " Generate mark name that is not used.
 "
-" Note:   Candidate of marks are a-Z regardless of displaying marks.
+" Note:   Mark candidates are a-z(except global) regardless of displaying marks.
 "
 function! hlmarks#mark#generate_name()
   let candidate_marks = s:mark.enable_automark
