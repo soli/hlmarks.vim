@@ -145,10 +145,20 @@ endfunction
 " Remove mark.
 "
 " Param:  [String] mark_seq: designated mark or mark sequence(e.g. abAS..)
+" Note:   Marks that can be remove by 'delmarks' command are as below.
+"           abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"
+"             (Note that double-quote(") must be escaped)
+"         Marks that can not be removed are as below.
+"           `'(){}
+"             (Note that back-quote(`) is presented as single-quote(') in 'marks' command.
+"         Be care, marks that can be removed by command are NOT same as marks
+"         that can be placed manually.
 "
 function! hlmarks#mark#remove(mark_seq)
+  let mark_seq = escape(a:mark_seq, '"')
+
   " Note: Suppress errors for unloaded/deleted buffer related to A-Z0-9 marks.
-  silent! execute printf('delmarks %s', a:mark_seq)
+  silent! execute printf('delmarks %s', mark_seq)
 endfunction
 
 "
