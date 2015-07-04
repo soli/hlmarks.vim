@@ -287,7 +287,8 @@ describe 'pos()'
 
     call s:prepare_mark(0)
 
-    " Special marks that needed single test.
+    " Special marks that needed single test because there spec will be changed
+    " by editing or another operations.
     let marks = ['`', '[', ']']
     for name in marks
       let mark_data = s:prepare_mark({'c': [name], 'o': []})
@@ -305,7 +306,7 @@ end
 describe 'remove()'
 
   it 'should try to remove passed any mark with suppressing errors'
-    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`''<>[]', '\zs')
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0`''<>[]', '\zs')
     let enable_remove = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]', '\zs')
     let enable_remove_with_escape = ['"']
     let unable_remove = '`''(){}' " '`' is appears as `'` in marks command result.
@@ -319,13 +320,7 @@ describe 'remove()'
     call hlmarks#mark#remove(join(enable_remove_with_escape, ''))
     call hlmarks#mark#remove(unable_remove)
 
-    let bundle = _Grab_('marks')
-
-    for name in enable_remove + enable_remove_with_escape
-      for crumb in bundle
-        Expect crumb !~# '\v^\s+'.escape(name, '.^[]').'\s+\d'
-      endfor
-    endfor
+    call s:expect_presence(enable_remove + enable_remove_with_escape, 0)
 
     call s:prepare_mark(0)
   end
