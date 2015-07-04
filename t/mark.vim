@@ -145,19 +145,23 @@ end
 describe 'covered()'
 
   it 'should return local/global mark specs only in current buffer'
-    let mark_data = s:prepare_mark()
+    let signable_marks = split(g:hlmarks_displaying_marks, '\zs')
+    let mark_data = s:prepare_mark({'c': signable_marks, 'o': []})
     let mark_spec = mark_data.c
 
     let result = hlmarks#mark#covered()
 
+    Expect len(mark_spec) == len(signable_marks)
     Expect len(result) == len(mark_spec)
 
     for [name, line_no] in items(result)
+      Expect index(signable_marks, name) >= 0
       Expect has_key(mark_spec, name) to_be_true
       Expect line_no == mark_spec[name]
     endfor
 
     call s:prepare_mark(0)
+
   end
 
   it 'should return empty dict if no mark is placed'
@@ -189,7 +193,7 @@ describe 'generate_name()'
   it 'should not return alphabetical global marks(A-Z)'
     let automark_candidate = s:Local('enable_automark')
 
-    Expect automark_candidate !~# '\v[A-Z0-9]'
+    Expect automark_candidate =~# '\v^[a-z]+$'
   end
 
   it 'should return empty string if all marks are used'
