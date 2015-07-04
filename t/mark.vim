@@ -356,13 +356,9 @@ describe 's:bundle()'
     call s:Reg({
       \ 'func': 's:bundle',
       \ })
-
-    new
   end
 
   after
-    close!
-
     call s:Reg(0)
   end
 
@@ -419,6 +415,26 @@ describe 's:bundle()'
     endfor
 
     call s:prepare_mark(0)
+  end
+
+  it 'should return info for all available marks'
+    " All marks except below marks.
+    "   - Global 0-9 because there marks can not be set here.
+    "   - Back-quote(`) is apprears in list as single(').
+    let all_marks = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.''^<>[]{}()"'
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]', '\zs')
+
+    " Set marks that can be set manually.
+    let mark_data = s:prepare_mark({'c': enable_set_manually, 'o': []})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let bundle = Call(s:Reg('func'), all_marks)
+
+    for name in split(all_marks, '\zs')
+      Expect bundle =~# '\v\s+'.escape(name, '.^[]<>{}()').'\s+\d'
+    endfor
   end
 
 end

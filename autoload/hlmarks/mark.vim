@@ -223,11 +223,13 @@ endfunction
 "
 " Param:  [String] (a:1) characters sequence of marks(default=all)
 " Return: [String] bundle that contains placed marks
-" Note:   Basically, this function extract marks in CURRENT buffer,
-"         but GLOBAL marks(A-Z0-9) are included. (See :marks command help)
+" Note:   Basically, this function extract marks in CURRENT buffer only with
+"         designated marks(if exists), but GLOBAL marks(A-Z0-9) in other buffer
+"         are included if they designated and exists. (See :marks command help)
 "
 function! s:bundle(...)
-  let mark_chars = a:0 ? a:1 : s:mark.available
+  " Note: Double-quote must be escaped in 'marks' command.
+  let mark_chars = escape((a:0 ? a:1 : s:mark.available), '"')
 
   " If execute mark command with invisibles, it cause error, so unmerge them.
   let invisibles = []
