@@ -142,9 +142,10 @@ endfunction
 " Remove mark.
 "
 " Param:  [String] mark_seq: designated mark or mark sequence(e.g. abAS..)
-" Note:   Marks that can be remove by 'delmarks' command are as below.
+" Note:   Marks that can be remove by 'delmarks {chars}' command are as below.
 "           abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"
 "             (Note that double-quote(") must be escaped)
+"             (Note that angle-bracket(<>") is NOT removed 'delmarks!' command)
 "         Marks that can not be removed are as below.
 "           `'(){}
 "             (Note that back-quote(`) is presented as single-quote(') in 'marks' command.
@@ -163,8 +164,9 @@ endfunction
 "
 function! hlmarks#mark#remove_all()
 
-  " Remove except marks A-Z0-9.
+  " Remove except marks A-Z0-9.(see also notes in remove())
   silent execute 'delmarks!'
+  silent execute 'delmarks <>\"'
 
   let bundle = s:bundle(s:mark.global)
   let placed_marks = keys(s:extract(bundle, bufnr('%')))

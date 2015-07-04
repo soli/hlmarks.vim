@@ -336,17 +336,25 @@ end
 describe 'remove_all()'
 
   it 'should remove all marks in current buffer'
-    " Test only deletable AND manually unable to set marks.
-    let marks_on_current = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN<>[]', '\zs')
-    let marks_on_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ<>[]', '\zs')
-    let mark_data = s:prepare_mark({'c': marks_on_current, 'o': marks_on_other})
+    " Marks - can be set manually, deletable, static/dynamic position.
+    let marks_current = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN<>[]', '\zs')
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.(except '`')
+    let marks_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ''<>[]', '\zs')
+    " Marks - deletable, except some globals that are placed in other buffer.
+    let should_be_removed = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0123456789.^<>[]"', '\zs')
+
+    " Set marks that can be set manually.
+    let mark_data = s:prepare_mark({'c': marks_current, 'o': marks_other})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
 
     call hlmarks#mark#remove_all()
 
-    call s:expect_presence(marks_on_current, 0)
+    call s:expect_presence(should_be_removed, 0)
 
     execute mark_data.w.o . 'wincmd w'
-    call s:expect_presence(marks_on_other, 1)
+    call s:expect_presence(marks_other, 1)
     execute mark_data.w.c . 'wincmd w'
 
     call s:prepare_mark(0)
