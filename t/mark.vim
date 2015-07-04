@@ -281,8 +281,8 @@ end
 
 describe 'pos()'
 
-  it 'should return line/buffer number of passed mark'
-    let marks = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''<>', '\zs')
+  it 'should return line/buffer number for normally marks'
+    let marks = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ<>', '\zs')
     let mark_data = s:prepare_mark({'c': marks, 'o': []})
     let buffer_no = bufnr('%')
 
@@ -291,17 +291,47 @@ describe 'pos()'
     endfor
 
     call s:prepare_mark(0)
+  end
 
-    " Special marks that needed single test because there spec will be changed
-    " by editing or another operations.
-    let marks = ['`', '[', ']']
-    for name in marks
+  it 'should return line/buffer number for auto-generating marks'
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let buffer_no = bufnr('%')
+    for name in ['.', '^']
+      let pos = hlmarks#mark#pos(name)
+      Expect pos[0] == buffer_no
+      Expect string(pos[1]) =~ '\v^\d+$'
+    endfor
+  end
+
+  it 'should return line/buffer number for dynamic marks'
+    let dynamics = ["'", '`', '[', ']', '"']
+
+    for name in dynamics
       let mark_data = s:prepare_mark({'c': [name], 'o': []})
       let buffer_no = bufnr('%')
 
       Expect hlmarks#mark#pos(name) == [buffer_no, mark_data.c[name]]
 
       call s:prepare_mark(0)
+    endfor
+  end
+
+  it 'should return line/buffer number for invisible marks'
+    let invisibles = ['(', ')', '{', '}']
+
+    " Set some dummy marks.
+    let mark_data = s:prepare_mark({'c': ['a', 'b', 'c'], 'o': []})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let buffer_no = bufnr('%')
+    for name in invisibles
+      let pos = hlmarks#mark#pos(name)
+      Expect pos[0] == buffer_no
+      Expect string(pos[1]) =~ '\v^\d+$'
     endfor
   end
 
