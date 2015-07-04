@@ -122,6 +122,7 @@ describe 'can_remove()'
 
   before
     call s:Local(1)
+    call s:Local({'enable_remove': 'a'})
   end
 
   after
@@ -133,10 +134,11 @@ describe 'can_remove()'
   end
 
   it 'should return false if designated mark is in list of unable-remove-marks'
-    Expect hlmarks#mark#can_remove("'") to_be_false
+    Expect hlmarks#mark#can_remove('b') to_be_false
+  end
 
-    call s:Local({'unable_remove': s:Local('unable_remove').'a'})
-    Expect hlmarks#mark#can_remove('a') to_be_false
+  it 'should return false if length of designated mark is more than two'
+    Expect hlmarks#mark#can_remove('aa') to_be_false
   end
 
 end

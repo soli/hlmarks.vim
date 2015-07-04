@@ -17,7 +17,6 @@ let s:mark = {
   \ 'invisible_marks': ['(', ')', '{', '}'],
   \ 'enable_set_manually': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]',
   \ 'enable_remove': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"',
-  \ 'unable_remove': '''`(){}',
   \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyz'
   \ }
 
@@ -52,7 +51,7 @@ endfunction
 " Return: [Number] determination (1/0)
 "
 function! hlmarks#mark#can_remove(mark)
-  return strlen(a:mark) == 1 && stridx(s:mark.unable_remove, a:mark) < 0
+  return strlen(a:mark) == 1 && stridx(s:mark.enable_remove, a:mark) >= 0
 endfunction
 
 "
