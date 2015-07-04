@@ -311,21 +311,20 @@ end
 describe 'remove()'
 
   it 'should try to remove passed any mark with suppressing errors'
-    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0`''<>[]', '\zs')
-    let enable_remove = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]', '\zs')
-    let enable_remove_with_escape = ['"']
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`''<>[]', '\zs')
+    let enable_remove = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"', '\zs')
     let unable_remove = '`''(){}' " '`' is appears as `'` in marks command result.
 
     let mark_data = s:prepare_mark({'c': enable_set_manually, 'o': []})
-
+    " Single/back/double-quote is set in this point.
     " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
     execute "normal Inew text \<Esc>"
 
     call hlmarks#mark#remove(join(enable_remove, ''))
-    call hlmarks#mark#remove(join(enable_remove_with_escape, ''))
     call hlmarks#mark#remove(unable_remove)
 
-    call s:expect_presence(enable_remove + enable_remove_with_escape, 0)
+    call s:expect_presence(enable_remove, 0)
 
     call s:prepare_mark(0)
   end
