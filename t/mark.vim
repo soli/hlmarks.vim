@@ -28,11 +28,14 @@ function! s:prepare_mark(...)
   if type(param) == type(1) && param == 0
     let mark_str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"'
     execute 'delmarks '.mark_str
-    close!
+    quit!
     execute 'delmarks '.mark_str
     return {}
   endif
 
+  " Origin buffer number always becomes '2' if add one buffer. DO NOT use winnr(|#|$) 
+  let other_wno = 2
+  let other_bno = bufnr('%')
   let other_spec = {}
   let line_no = 1
   for name in param['o']
@@ -45,6 +48,9 @@ function! s:prepare_mark(...)
 
   new
 
+  " Newly buffer number always becomes '1' if add one buffer. DO NOT use winnr(|#|$) 
+  let current_wno = 1
+  let current_bno = bufnr('%')
   let current_spec = {}
   let line_no = 1
   for name in param['c']
@@ -75,6 +81,8 @@ function! s:prepare_mark(...)
     \ 'o': other_spec,
     \ 'a': merged,
     \ 'g': globals,
+    \ 'w': {'c': current_wno, 'o': other_wno},
+    \ 'b': {'c': current_bno, 'o': other_bno},
     \ }
 endfunction
 
