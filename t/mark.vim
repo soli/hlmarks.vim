@@ -24,6 +24,7 @@ endfunction
 
 function! s:prepare_mark(...)
   let param = a:0 ? a:1 : {'c': ['a', 'A'], 'o': ['b', 'B']}
+  let fix_lno = a:0 == 2 ? 1 : 0
 
   if type(param) == type(1) && param == 0
     let mark_str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"'
@@ -43,7 +44,9 @@ function! s:prepare_mark(...)
     call cursor(line_no, 1)
     execute 'normal m'.name
     let other_spec[name] = line_no
-    let line_no += 1
+    if !fix_lno
+      let line_no += 1
+    endif
   endfor
 
   new
@@ -58,7 +61,9 @@ function! s:prepare_mark(...)
     call cursor(line_no, 1)
     execute 'normal m'.name
     let current_spec[name] = line_no
-    let line_no += 1
+    if !fix_lno
+      let line_no += 1
+    endif
   endfor
 
   let merged = deepcopy(current_spec, 1)
