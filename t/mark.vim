@@ -350,6 +350,59 @@ describe 'remove_all()'
 end
 
 
+describe 'remove_on_line()'
+
+  it 'should remove mark that is placed on designated line only current buffer and return it as list'
+    " Marks - can be set manually, deletable, static position.
+    let marks_current_1 = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN<>', '\zs')
+    " Marks - can be set manually, deletable, dynamic position.
+    let marks_current_2 = split('[]', '\zs')
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.(except '`')
+    let marks_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ''<>[]', '\zs')
+
+    " Set marks that can be set manually.
+    let mark_data = s:prepare_mark({'c': marks_current_1, 'o': marks_other})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let mark_spec = mark_data.c
+
+    for [name, line_no] in items(mark_spec)
+      let result = hlmarks#mark#remove_on_line(line_no)
+      " Inspector
+      if result == []
+        Expect name.'='.line_no.':'.(string(getpos("'".name))) == '(debug)'
+      endif
+      " Dynamic marks are removed together some static marks, so check by existence.
+      Expect index(result, name) >= 0
+      call s:expect_presence([name], 0)
+    endfor
+
+    " Remove marks that can not be set but deletable(but perhaps, .^ are removed in this point).
+    for line_no in range(1, line('$'))
+      call hlmarks#mark#remove_on_line(line_no)
+    endfor
+
+    call s:expect_presence(['.', '^', '"'], 0)
+
+    execute mark_data.w.o . 'wincmd w'
+    call s:expect_presence(marks_other, 1)
+    execute mark_data.w.c . 'wincmd w'
+
+    call s:prepare_mark(0)
+
+    " Dynamic marks.
+    for name in marks_current_2
+      let mark_data = s:prepare_mark({'c': [name], 'o': []})
+      Expect index(hlmarks#mark#remove_on_line(mark_data.c[name]), name) >= 0
+      call s:prepare_mark(0)
+    endfor
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
