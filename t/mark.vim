@@ -333,6 +333,28 @@ describe 'remove()'
 end
 
 
+describe 'remove_all()'
+
+  it 'should remove all marks in current buffer'
+    " Test only deletable AND manually unable to set marks.
+    let marks_on_current = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN<>[]', '\zs')
+    let marks_on_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ<>[]', '\zs')
+    let mark_data = s:prepare_mark({'c': marks_on_current, 'o': marks_on_other})
+
+    call hlmarks#mark#remove_all()
+
+    call s:expect_presence(marks_on_current, 0)
+
+    execute mark_data.w.o . 'wincmd w'
+    call s:expect_presence(marks_on_other, 1)
+    execute mark_data.w.c . 'wincmd w'
+
+    call s:prepare_mark(0)
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
