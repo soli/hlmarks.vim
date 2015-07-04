@@ -568,36 +568,64 @@ describe 's:extract()'
     call s:Reg(0)
   end
 
-  it 'should extract all mark info from single strings crumb'
-    let mark_data = s:prepare_mark()
-    let mark_spec = deepcopy(mark_data.c, 1)
-    call extend(mark_spec, mark_data.g)
-    let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
+  it 'should extract all marks info from single strings crumb'
+    " All marks except below marks.
+    "   - Global 0-9 because there marks can not be set here.
+    "   - Back-quote(`) is apprears in list as single(').
+    let all_marks = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.''^<>[]{}()"'
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.(except '`')
+    let marks_current = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN''<>[]', '\zs')
+    let marks_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ''<>[]', '\zs')
+
+    let mark_data = s:prepare_mark({'c': marks_current, 'o': marks_other})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let mark_spec = mark_data.c
+    let bundle = Call(s:Reg('bundle_func'), all_marks)
 
     let result = Call(s:Reg('func'), bundle)
 
-    Expect len(result) == len(mark_spec)
+    Expect len(result) == len(split(all_marks, '\zs'))
 
     for [name, line_no] in items(result)
-      Expect has_key(mark_spec, name) to_be_true
-      Expect line_no == mark_spec[name]
+      " Except dynamics.
+      if has_key(mark_spec, name) && index(['[', ']'], name) < 0
+        Expect line_no == mark_spec[name]
+      endif
     endfor
 
     call s:prepare_mark(0)
   end
 
-  it 'should extract all mark info except global in other buffer'
-    let mark_data = s:prepare_mark()
-    let current_spec = mark_data.c
-    let bundle = Call(s:Reg('bundle_func'), join(keys(mark_data.a), ''))
+  it 'should extract all marks info except global in other buffer'
+    " All marks except below marks.
+    "   - Global 0-9 because there marks can not be set here.
+    "   - Back-quote(`) is apprears in list as single(').
+    let all_marks = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.''^<>[]{}()"'
+    let all_marks_current = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN.''^<>[]{}()"'
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.(except '`')
+    let marks_current = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN''<>[]', '\zs')
+    let marks_other = split('abcdefghijklmnopqrstuvwxyzOPQRSTUVWXYZ''<>[]', '\zs')
+
+    let mark_data = s:prepare_mark({'c': marks_current, 'o': marks_other})
+    " Single/back/double-quote is set in this point.
+    " Create mark .^ (As below expresion, double quote is required for backslash and output escape.
+    execute "normal Inew text \<Esc>"
+
+    let mark_spec = mark_data.c
+    let bundle = Call(s:Reg('bundle_func'), all_marks)
 
     let result = Call(s:Reg('func'), bundle, bufnr('%'))
 
-    Expect len(result) == len(current_spec)
+    Expect len(result) == len(split(all_marks_current, '\zs'))
 
     for [name, line_no] in items(result)
-      Expect has_key(current_spec, name) to_be_true
-      Expect line_no == current_spec[name]
+      " Except dynamics.
+      if has_key(mark_spec, name) && index(['[', ']'], name) < 0
+        Expect line_no == mark_spec[name]
+      endif
     endfor
 
     call s:prepare_mark(0)
