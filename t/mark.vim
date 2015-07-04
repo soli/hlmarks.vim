@@ -405,6 +405,20 @@ describe 'remove_on_line()'
     endfor
   end
 
+  it 'should remove all marks on same line'
+    let marks = ['a', 'b']
+    let mark_data = s:prepare_mark({'c': marks, 'o': []}, 1)
+    let line_no = mark_data.c[marks[0]]
+
+    let result = hlmarks#mark#remove_on_line(line_no)
+
+    for name in marks
+      Expect index(result, name) >= 0
+    endfor
+
+    call s:prepare_mark(0)
+  end
+
 end
 
 
