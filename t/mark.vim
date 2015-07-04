@@ -93,7 +93,7 @@ function! s:expect_presence(marks, should_present)
     if a:should_present
       let matched = []
       for crumb in bundle
-        if crumb =~# '\v^\s+'.escape(name, '.^[]<>').'\s+\d'
+        if crumb =~# '\v^\s+'.escape(name, '.^[]<>{}()').'\s+\d'
           call add(matched, name)
           break
         endif
@@ -105,7 +105,7 @@ function! s:expect_presence(marks, should_present)
       Expect len(matched) == 1
     else
       for crumb in bundle
-        Expect crumb !~# '\v^\s+'.escape(name, '.^[]').'\s+\d'
+        Expect crumb !~# '\v^\s+'.escape(name, '.^[]{}()').'\s+\d'
       endfor
     endif
   endfor
