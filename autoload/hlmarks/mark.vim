@@ -15,11 +15,10 @@ let s:mark = {
   \ 'available': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.''`^<>[]{}()"',
   \ 'global': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
   \ 'invisible_marks': ['(', ')', '{', '}'],
-  \ 'enable_set_manually': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>',
+  \ 'enable_set_manually': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]',
   \ 'enable_remove': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"',
   \ 'unable_remove': '''`(){}',
-  \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyz',
-  \ 'set_automatically': '"^.(){}'
+  \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyz'
   \ }
 
 function! s:_export_()
