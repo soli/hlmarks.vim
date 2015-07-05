@@ -95,9 +95,11 @@ endfunction
 function! hlmarks#refresh_signs()
   call hlmarks#sign#remove_all()
 
-  for [mark, line_no] in items(hlmarks#mark#covered())
-    call hlmarks#sign#place_on_mark(line_no, mark)
-  endfor
+  if hlmarks#sign#should_place()
+    for [mark, line_no] in items(hlmarks#mark#covered())
+      call hlmarks#sign#place_on_mark(line_no, mark)
+    endfor
+  endif
 
   call hlmarks#mark#set_cache()
   call hlmarks#sign#set_cache()
