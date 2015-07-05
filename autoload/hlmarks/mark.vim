@@ -163,8 +163,8 @@ endfunction
 function! hlmarks#mark#remove_all()
 
   " Remove except marks A-Z0-9.(see also notes in remove())
-  silent execute 'delmarks!'
-  silent execute 'delmarks <>\"'
+  silent! delmarks!
+  silent! delmarks <>\"
 
   let bundle = s:bundle(s:mark.globals)
   let placed_marks = keys(s:extract(bundle, 0))
@@ -201,6 +201,7 @@ endfunction
 " Param:  [String] mark: mark name
 "
 function! hlmarks#mark#set(mark)
+  " Not suppress errors for user.
   silent execute printf('normal %s%s', g:hlmarks_alias_native_mark_cmd, a:mark)
 endfunction
 
