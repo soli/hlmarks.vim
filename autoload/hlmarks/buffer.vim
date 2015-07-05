@@ -58,7 +58,7 @@ endfunction
 "
 function! s:buffer_bundle()
   redir => bundle
-    silent execute 'ls!'
+    silent! ls!
   redir END
 
   return bundle
