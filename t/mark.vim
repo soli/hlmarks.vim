@@ -465,6 +465,28 @@ describe 'remove_on_line()'
 end
 
 
+describe 'set()'
+
+  it 'should set mark that can be placed manually'
+    " Marks - can be set manually, deletable/undeletable, static/dynamic position.(except '`')
+    let enable_set_manually = split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''<>[]', '\zs')
+
+    " Must be manually in test.
+    silent! execute printf('noremap <script><unique> %s m', g:hlmarks_alias_native_mark_cmd)
+
+    for name in enable_set_manually
+      call hlmarks#mark#set(name)
+    endfor
+
+    call s:expect_presence(enable_set_manually, 1)
+
+    " Revert map.
+    silent! execute printf('unmap %s', g:hlmarks_alias_native_mark_cmd)
+  end
+
+end
+
+
 describe 's:bundle()'
 
   before
