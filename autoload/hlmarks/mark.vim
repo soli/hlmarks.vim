@@ -17,7 +17,7 @@ let s:mark = {
   \ 'invisibles': ['(', ')', '{', '}'],
   \ 'togglables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]',
   \ 'deletables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"',
-  \ 'automarkables': 'abcdefghijklmnopqrstuvwxyz'
+  \ 'automarkables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
   \ }
 
 function! s:_export_()
@@ -47,12 +47,16 @@ endfunction
 "
 " Generate mark name that is not used.
 "
-" Note:   Mark candidates are a-z(except global) regardless of displaying marks.
+" Param:  [Number] for_local: Whether generate name for local or not(=global)
+" Return: [String] mark name
 "
-function! hlmarks#mark#generate_name()
+function! hlmarks#mark#generate_name(for_local)
   let candidate_marks = s:mark.automarkables
+  let [pattern, include_global] = a:for_local ? ['\v\u', 0] : ['\v\l', 1]
+  let candidate_marks = substitute(candidate_marks, pattern, '', 'g')
+
   let bundle = s:bundle(candidate_marks)
-  let placed_marks = join(keys(s:extract(bundle, 1)), '')
+  let placed_marks = join(keys(s:extract(bundle, include_global)), '')
   let mark = ''
 
   let last_idx = strlen(candidate_marks) - 1
