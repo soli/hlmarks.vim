@@ -252,6 +252,7 @@ function! s:toggle_key_mappings(flag)
   silent! nunmap  m
   silent! execute printf('nunmap  %smr', g:hlmarks_prefix_key)
   silent! execute printf('nunmap  %smm', g:hlmarks_prefix_key)
+  silent! execute printf('nunmap  %smM', g:hlmarks_prefix_key)
   silent! execute printf('nunmap  %sml', g:hlmarks_prefix_key)
   silent! execute printf('nunmap  %smb', g:hlmarks_prefix_key)
 
@@ -267,6 +268,8 @@ function! s:toggle_key_mappings(flag)
       \ 'nmap <silent><unique> %smr <Plug>(hlmarks-refresh-signs)', g:hlmarks_prefix_key)
     silent! execute printf(
       \ 'nmap <silent><unique> %smm <Plug>(hlmarks-automark)', g:hlmarks_prefix_key)
+    silent! execute printf(
+      \ 'nmap <silent><unique> %smM <Plug>(hlmarks-automark-global)', g:hlmarks_prefix_key)
     silent! execute printf(
       \ 'nmap <silent><unique> %sml <Plug>(hlmarks-remove-marks-line)', g:hlmarks_prefix_key)
     silent! execute printf(
