@@ -607,7 +607,7 @@ describe 's:extract()'
     let mark_spec = mark_data.c
     let bundle = Call(s:Reg('bundle_func'), all_marks)
 
-    let result = Call(s:Reg('func'), bundle)
+    let result = Call(s:Reg('func'), bundle, 1)
 
     Expect len(result) == len(split(all_marks, '\zs'))
 
@@ -639,7 +639,7 @@ describe 's:extract()'
     let mark_spec = mark_data.c
     let bundle = Call(s:Reg('bundle_func'), all_marks)
 
-    let result = Call(s:Reg('func'), bundle, bufnr('%'))
+    let result = Call(s:Reg('func'), bundle, 0)
 
     Expect len(result) == len(split(all_marks_current, '\zs'))
 
@@ -656,7 +656,7 @@ describe 's:extract()'
   it 'should return empty dict if has no mark'
     let bundle = Call(s:Reg('bundle_func'), 'abcABC')
 
-    let result = Call(s:Reg('func'), bundle)
+    let result = Call(s:Reg('func'), bundle, 1)
 
     Expect result == {}
   end

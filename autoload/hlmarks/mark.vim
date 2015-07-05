@@ -60,7 +60,7 @@ endfunction
 " Return: [Dict] mark specs (see extract())
 "
 function! hlmarks#mark#covered()
-  return s:extract(s:bundle(g:hlmarks_displaying_marks), bufnr('%'))
+  return s:extract(s:bundle(g:hlmarks_displaying_marks), 0)
 endfunction
 
 "
@@ -71,7 +71,7 @@ endfunction
 function! hlmarks#mark#generate_name()
   let candidate_marks = s:mark.automarkables
   let bundle = s:bundle(candidate_marks)
-  let placed_marks = join(keys(s:extract(bundle)), '')
+  let placed_marks = join(keys(s:extract(bundle, 1)), '')
   let mark = ''
 
   let last_idx = strlen(candidate_marks) - 1
@@ -96,7 +96,7 @@ endfunction
 " Return: [Dict] mark state (see extract())
 "
 function! hlmarks#mark#generate_state()
-  return s:extract(s:bundle(g:hlmarks_displaying_marks), bufnr('%'))
+  return s:extract(s:bundle(g:hlmarks_displaying_marks), 0)
 endfunction
 
 "
@@ -167,7 +167,7 @@ function! hlmarks#mark#remove_all()
   silent execute 'delmarks <>\"'
 
   let bundle = s:bundle(s:mark.globals)
-  let placed_marks = keys(s:extract(bundle, bufnr('%')))
+  let placed_marks = keys(s:extract(bundle, 0))
 
   call hlmarks#mark#remove(join(placed_marks, ''))
 endfunction
@@ -181,7 +181,7 @@ endfunction
 function! hlmarks#mark#remove_on_line(...)
   let line_no = a:0 ? a:1 : line('.')
   let bundle = s:bundle(s:mark.deletables)
-  let placed_marks = s:extract(bundle, bufnr('%'))
+  let placed_marks = s:extract(bundle, 0)
   let marks = []
 
   for [mark, placed_line_no] in items(placed_marks)
@@ -263,16 +263,20 @@ endfunction
 " Extract mark name/line-no from bundle that is taken from 'marks' command.
 "
 " Param:  [String] bundle: bundle of placed marks
-" Param:  [Number] (a:1) target buffer number (default=regardless-of-buffer)
+" Param:  [Number] include_globals_in_other_buffer: as variable name
 " Return: [Dict] dictionary of extracted mark specs as {mark-name: line-no}
+" Note:   Passed bundle(perhaps created by s:bundle()) DO NOT include marks
+"         other than current buffer, BUT global marks in other buffer are
+"         contained if they are designated in s:bundle() invocation.
 "
-function! s:extract(bundle, ...)
+function! s:extract(bundle, include_globals_in_other_buffer)
   let marks = {}
-  let buffer_no = a:0 ? a:1 : 0
+  let buffer_no = bufnr('%')
+  let include_other = a:include_globals_in_other_buffer
 
   for crumb in split(a:bundle, "\n")
     let matched = matchlist(crumb, '\v^\s+(\S)\s+(\d+)\s+')
-    if !empty(matched) && (!buffer_no || hlmarks#mark#pos(matched[1])[0] == buffer_no)
+    if !empty(matched) && (include_other || hlmarks#mark#pos(matched[1])[0] == buffer_no)
       let marks[matched[1]] = str2nr(matched[2], 10)
     endif
   endfor
