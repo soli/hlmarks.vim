@@ -161,7 +161,6 @@ describe 'get_cache()'
   it 'should return empty hash if cache is empty'
     let cache = hlmarks#sign#get_cache()
 
-    Expect type(cache) == type({})
     Expect cache == {}
   end
 
@@ -175,7 +174,6 @@ describe 'get_cache()'
 
     let cache = hlmarks#sign#get_cache()
 
-    Expect type(cache) == type({})
     Expect len(cache) == 1
     Expect has_key(cache, '1') to_be_true
 
@@ -617,7 +615,6 @@ describe 's:definition_bundle()'
     let bundle = Call('s:definition_bundle')
     let signs = s:Reg('signs')
 
-    Expect type(bundle) == type('') 
     Expect bundle != '' 
     Expect bundle =~# signs[0]
   end
@@ -678,7 +675,6 @@ describe 's:extract_definition_names()'
     let bundle = Call(s:Reg('bundle_func'))
     let names = Call(s:Reg('func'), bundle, signs[0])
 
-    Expect type(names) == type([])
     Expect len(names) == 1
     Expect names == [signs[0]]
   end
@@ -687,13 +683,11 @@ describe 's:extract_definition_names()'
     let signs = s:Reg('signs')
     let names = Call(s:Reg('func'), '', signs[0])
 
-    Expect type(names) == type([])
     Expect names == []
 
     let bundle = Call(s:Reg('bundle_func'))
     let names = Call(s:Reg('func'), bundle, '^__never_match__')
 
-    Expect type(names) == type([])
     Expect names == []
   end
 
@@ -846,7 +840,6 @@ describe 's:extract_sign_ids()'
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
 
-    Expect type(ids) == type([])
     Expect len(ids) == 0
   end
 
@@ -855,7 +848,6 @@ describe 's:extract_sign_ids()'
     let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
     let expected = s:Reg('ids')
 
-    Expect type(ids) == type([])
     Expect len(ids) == 1
     Expect ids == [expected[0]]
   end
@@ -865,7 +857,6 @@ describe 's:extract_sign_ids()'
     let ids = Call(s:Reg('func'), bundle, '')
     let expected = s:Reg('ids')
 
-    Expect type(ids) == type([])
     Expect len(ids) == len(expected)
     Expect sort(ids, 'n') == sort(deepcopy(expected), 'n')
   end
@@ -1112,7 +1103,6 @@ describe 's:sign_bundle()'
   it 'should return placed sign info in designated buffer as single string crumb'
     let bundle = Call(s:Reg('func'), bufnr('%'))
 
-    Expect type(bundle) == type('')
     Expect bundle != ''
     for sign_name in s:Reg('signs')
       Expect bundle =~# sign_name
@@ -1122,7 +1112,6 @@ describe 's:sign_bundle()'
   it 'should return placed sign info current buffer if no number passed'
     let bundle = Call(s:Reg('func'))
 
-    Expect type(bundle) == type('')
     Expect bundle != ''
     for sign_name in s:Reg('signs')
       Expect bundle =~# sign_name
@@ -1133,7 +1122,6 @@ describe 's:sign_bundle()'
     call s:place_sign(0)
     let bundle = Call(s:Reg('func'), bufnr('%'))
 
-    Expect type(bundle) == type('')
     Expect bundle != ''
     for sign_name in s:Reg('signs')
       Expect bundle !~# sign_name
