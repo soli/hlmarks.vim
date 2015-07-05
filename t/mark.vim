@@ -131,32 +131,100 @@ describe 'generate_name()'
 
   after
     call s:Local(0)
-  end
-
-  it 'should return next character that is not used yet'
-    let marks = {'c': ['a', 'b'], 'o': []}
-    let mark_data = s:prepare_mark(marks)
-
-    Expect hlmarks#mark#generate_name() == 'c'
-
     call s:prepare_mark(0)
   end
 
-  it 'should not return alphabetical global marks(A-Z)'
-    let automark_candidate = s:Local('automarkables')
+  context '(1st arg = 1 = name for local marks)'
 
-    Expect automark_candidate =~# '\v^[a-z]+$'
+    it 'should return next character that is not used yet in a-z'
+      let marks = {'c': ['a'], 'o': []}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abAB'})
+
+      Expect hlmarks#mark#generate_name(1) == 'b'
+    end
+
+    it 'should not return global marks(A-Z)'
+      let marks = {'c': ['b'], 'o': []}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abAB'})
+
+      Expect hlmarks#mark#generate_name(1) == 'a'
+    end
+
+    it 'should return empty string if all marks are used'
+      let marks = {'c': ['a', 'b'], 'o': []}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abAB'})
+
+      Expect hlmarks#mark#generate_name(1) == ''
+    end
+
   end
 
-  it 'should return empty string if all marks are used'
-    let marks = {'c': ['a', 'b'], 'o': []}
-    let mark_data = s:prepare_mark(marks)
+  context '(1st arg = 0 = name for global marks, only current buffer)'
 
-    call s:Local({'automarkables': 'ab'})
+    it 'should return next character that is not used yet in A-Z'
+      let marks = {'c': ['A'], 'o': []}
+      call s:prepare_mark(marks)
 
-    Expect hlmarks#mark#generate_name() == ''
+      call s:Local({'automarkables': 'abAB'})
 
-    call s:prepare_mark(0)
+      Expect hlmarks#mark#generate_name(0) == 'B'
+    end
+
+    it 'should not return local marks(a-z)'
+      let marks = {'c': ['B'], 'o': []}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abAB'})
+
+      Expect hlmarks#mark#generate_name(0) == 'A'
+    end
+
+    it 'should return empty string if all marks are used'
+      let marks = {'c': ['A', 'B'], 'o': []}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abAB'})
+
+      Expect hlmarks#mark#generate_name(0) == ''
+    end
+
+  end
+
+  context '(1st arg = 0 = name for global marks, both current/other buffer)'
+
+    it 'should return next character that is not used yet in A-Z'
+      let marks = {'c': ['A'], 'o': ['B']}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abABC'})
+
+      Expect hlmarks#mark#generate_name(0) == 'C'
+    end
+
+    it 'should not return local marks(a-z)'
+      let marks = {'c': ['B'], 'o': ['C']}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abABC'})
+
+      Expect hlmarks#mark#generate_name(0) == 'A'
+    end
+
+    it 'should return empty string if all marks are used'
+      let marks = {'c': ['A', 'B'], 'o': ['C']}
+      call s:prepare_mark(marks)
+
+      call s:Local({'automarkables': 'abABC'})
+
+      Expect hlmarks#mark#generate_name(0) == ''
+    end
+
   end
 
 end

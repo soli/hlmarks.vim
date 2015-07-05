@@ -150,9 +150,13 @@ KEY MAPPINGS                                                *hlmarks-mappings*
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
         In the range of a-z, unused mark is put in order from 'a'.
-        Regardless of whether put mark is allowed to highlight and display 
-        name or not, always the character of a-z is used.
-        (Also refer to |hlmarks_displaying_marks|)
+        Regardless of whether a-z characters are allowed to highlight and
+        display name or not, it's always executed.
+
+<Plug>(hlmarks-automark-global)                      *hlmarks-automark-global*
+        In the range of A-Z, unused mark is put in order from 'A'.
+        Regardless of whether A-Z characters are allowed to highlight and
+        display name or not, it's always executed.
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*
         Remove removable marks(all but '(){}) that is placed on the current 
@@ -167,6 +171,7 @@ DEFAULT KEY-MAPPINGS                                *hlmarks-default-mappings*
 
 <Leader>mr      <Plug>(hlmarks-refresh-signs)
 <Leader>mm      <Plug>(hlmarks-automark)
+<Leader>mM      <Plug>(hlmarks-automark-global)
 <Leader>ml      <Plug>(hlmarks-remove-marks-line)
 <Leader>mb      <Plug>(hlmarks-remove-marks-buffer)
 
