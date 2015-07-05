@@ -45,16 +45,6 @@ endfunction
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 "
-" Determine whether mark can be removed or not.
-"
-" Param:  [String] mark: candidate mark 
-" Return: [Number] determination (1/0)
-"
-function! hlmarks#mark#can_remove(mark)
-  return strlen(a:mark) == 1 && stridx(s:mark.deletables, a:mark) >= 0
-endfunction
-
-"
 " Generate mark name that is not used.
 "
 " Note:   Mark candidates are a-z(except global) regardless of displaying marks.

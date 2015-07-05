@@ -118,32 +118,6 @@ endfunction
 
 
 
-describe 'can_remove()'
-
-  before
-    call s:Local(1)
-    call s:Local({'deletables': 'a'})
-  end
-
-  after
-    call s:Local(0)
-  end
-
-  it 'should return true if designated mark is not in list of unable-remove-marks'
-    Expect hlmarks#mark#can_remove('a') to_be_true
-  end
-
-  it 'should return false if designated mark is in list of unable-remove-marks'
-    Expect hlmarks#mark#can_remove('b') to_be_false
-  end
-
-  it 'should return false if length of designated mark is more than two'
-    Expect hlmarks#mark#can_remove('aa') to_be_false
-  end
-
-end
-
-
 describe 'specs_for_sign()'
 
   it 'should return local/global mark specs only in current buffer'
