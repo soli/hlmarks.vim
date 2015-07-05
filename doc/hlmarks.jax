@@ -144,9 +144,13 @@
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
         a-z の範囲で、'a' から順に未使用のマークを置きます。
-        設置されたマークが、ハイライトとマーク名表示の対象かどうかに係わらず、
-        常に a-z の文字が使用されます。
-        （|hlmarks_displaying_marks| も参照してください）
+        a-z の文字がハイライトとマーク名表示の対象かどうかに係わらず、常に実行
+        されます。
+
+<Plug>(hlmarks-automark-global)                      *hlmarks-automark-global*
+        A-Z の範囲で、'A' から順に未使用のマークを置きます。
+        A-Z の文字がハイライトとマーク名表示の対象かどうかに係わらず、常に実行
+        されます。
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*
         現在行に置かれている削除可能なマーク（'(){} を除く全て）を削除し、同時
@@ -161,6 +165,7 @@
 
 <Leader>mr      <Plug>(hlmarks-refresh-signs)
 <Leader>mm      <Plug>(hlmarks-automark)
+<Leader>mM      <Plug>(hlmarks-automark-global)
 <Leader>ml      <Plug>(hlmarks-remove-marks-line)
 <Leader>mb      <Plug>(hlmarks-remove-marks-buffer)
 
