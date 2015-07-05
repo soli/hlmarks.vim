@@ -144,7 +144,7 @@ function! hlmarks#set_mark(...)
   endif
 
   " Note: Delegate to original command even if passed mark is invalid.
-  if !hlmarks#mark#is_valid(mark)
+  if !hlmarks#mark#should_handle(mark)
     call hlmarks#mark#set(mark)
     return
   endif

@@ -109,12 +109,12 @@ function! hlmarks#mark#get_cache()
 endfunction
 
 "
-" Determine whether mark is valid or not.
+" Determine whether mark should be handled or not.
 "
 " Param:  [String] mark: candidate mark 
 " Return: [Number] determination (1/0)
 "
-function! hlmarks#mark#is_valid(mark)
+function! hlmarks#mark#should_handle(mark)
   return strlen(a:mark) == 1 && stridx(s:mark.togglables, a:mark) >= 0
 endfunction
 

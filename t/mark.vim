@@ -262,7 +262,7 @@ describe 'get_cache()'
 end
 
 
-describe 'is_valid()'
+describe 'should_handle()'
 
   before
     call s:Local(1)
@@ -274,12 +274,12 @@ describe 'is_valid()'
   end
 
   it 'should return true passed mark has correct length and is in predefined list'
-    Expect hlmarks#mark#is_valid('a') to_be_true
+    Expect hlmarks#mark#should_handle('a') to_be_true
   end
 
   it 'should return false passed mark has 2 or more length or is not in list'
-    Expect hlmarks#mark#is_valid('d') to_be_false
-    Expect hlmarks#mark#is_valid('aa') to_be_false
+    Expect hlmarks#mark#should_handle('d') to_be_false
+    Expect hlmarks#mark#should_handle('aa') to_be_false
   end
 
 end
