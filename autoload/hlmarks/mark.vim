@@ -12,12 +12,12 @@ set cpo&vim
 
 let s:mark = {
   \ 'cache_name': 'marks',
-  \ 'available': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.''`^<>[]{}()"',
-  \ 'global': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-  \ 'invisible_marks': ['(', ')', '{', '}'],
-  \ 'enable_set_manually': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]',
-  \ 'enable_remove': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"',
-  \ 'enable_automark': 'abcdefghijklmnopqrstuvwxyz'
+  \ 'availables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.''`^<>[]{}()"',
+  \ 'globals': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  \ 'invisibles': ['(', ')', '{', '}'],
+  \ 'togglables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ''`<>[]',
+  \ 'deletables': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.^<>[]"',
+  \ 'automarkables': 'abcdefghijklmnopqrstuvwxyz'
   \ }
 
 function! s:_export_()
@@ -51,7 +51,7 @@ endfunction
 " Return: [Number] determination (1/0)
 "
 function! hlmarks#mark#can_remove(mark)
-  return strlen(a:mark) == 1 && stridx(s:mark.enable_remove, a:mark) >= 0
+  return strlen(a:mark) == 1 && stridx(s:mark.deletables, a:mark) >= 0
 endfunction
 
 "
@@ -69,7 +69,7 @@ endfunction
 " Note:   Mark candidates are a-z(except global) regardless of displaying marks.
 "
 function! hlmarks#mark#generate_name()
-  let candidate_marks = s:mark.enable_automark
+  let candidate_marks = s:mark.automarkables
   let bundle = s:bundle(candidate_marks)
   let placed_marks = join(keys(s:extract(bundle)), '')
   let mark = ''
@@ -115,7 +115,7 @@ endfunction
 " Return: [Number] determination (1/0)
 "
 function! hlmarks#mark#is_valid(mark)
-  return strlen(a:mark) == 1 && stridx(s:mark.enable_set_manually, a:mark) >= 0
+  return strlen(a:mark) == 1 && stridx(s:mark.togglables, a:mark) >= 0
 endfunction
 
 "
@@ -166,7 +166,7 @@ function! hlmarks#mark#remove_all()
   silent execute 'delmarks!'
   silent execute 'delmarks <>\"'
 
-  let bundle = s:bundle(s:mark.global)
+  let bundle = s:bundle(s:mark.globals)
   let placed_marks = keys(s:extract(bundle, bufnr('%')))
 
   call hlmarks#mark#remove(join(placed_marks, ''))
@@ -180,7 +180,7 @@ endfunction
 "
 function! hlmarks#mark#remove_on_line(...)
   let line_no = a:0 ? a:1 : line('.')
-  let bundle = s:bundle(s:mark.enable_remove)
+  let bundle = s:bundle(s:mark.deletables)
   let placed_marks = s:extract(bundle, bufnr('%'))
   let marks = []
 
@@ -229,11 +229,11 @@ endfunction
 "
 function! s:bundle(...)
   " Note: Double-quote must be escaped in 'marks' command.
-  let mark_chars = escape((a:0 ? a:1 : s:mark.available), '"')
+  let mark_chars = escape((a:0 ? a:1 : s:mark.availables), '"')
 
   " If execute mark command with invisibles, it cause error, so unmerge them.
   let invisibles = []
-  for mark in s:mark.invisible_marks
+  for mark in s:mark.invisibles
     if stridx(mark_chars, mark) >= 0
       call add(invisibles, mark)
       let mark_chars = substitute(mark_chars, mark, '', 'g')

@@ -122,7 +122,7 @@ describe 'can_remove()'
 
   before
     call s:Local(1)
-    call s:Local({'enable_remove': 'a'})
+    call s:Local({'deletables': 'a'})
   end
 
   after
@@ -193,7 +193,7 @@ describe 'generate_name()'
   end
 
   it 'should not return alphabetical global marks(A-Z)'
-    let automark_candidate = s:Local('enable_automark')
+    let automark_candidate = s:Local('automarkables')
 
     Expect automark_candidate =~# '\v^[a-z]+$'
   end
@@ -202,7 +202,7 @@ describe 'generate_name()'
     let marks = {'c': ['a', 'b'], 'o': []}
     let mark_data = s:prepare_mark(marks)
 
-    call s:Local({'enable_automark': 'ab'})
+    call s:Local({'automarkables': 'ab'})
 
     Expect hlmarks#mark#generate_name() == ''
 
@@ -266,7 +266,7 @@ describe 'is_valid()'
 
   before
     call s:Local(1)
-    call s:Local({'enable_set_manually': 'abc'})
+    call s:Local({'togglables': 'abc'})
   end
 
   after
