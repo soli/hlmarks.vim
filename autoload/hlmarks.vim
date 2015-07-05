@@ -189,6 +189,17 @@ function! hlmarks#set_mark(...)
 endfunction
 
 "
+" Set local/global mark that is gemerated by automatically.
+"
+" Param:  [Number] local_mark: whether generate mark for locals or not(=globals)
+" Param:  [Number] (a:1) line no.(default='.')
+"
+function! hlmarks#set_automark(local_mark, ...)
+  let mark = a:local_mark ? hlmarks#mark#generate_name() : hlmarks#mark#generate_global_name()
+  let line_no = a:0 ? a:1 : line('.')
+  call hlmarks#set_mark(mark, line_no)
+endfunction!
+
 " Private.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
