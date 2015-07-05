@@ -103,13 +103,20 @@ ex: put the mark 'a' >
 <
 Now, the line put the mark is highlighted, and you will see the mark name 'a>'
 in the gutter.
+
+Highlight and display the name for all marks that are set to
+|hlmarks_displaying_marks|. Thus, marks other than described above, that can
+not be put in manually, will be updated and displayed after a certain interval
+(currently after 4000ms) by set to this option.
+
 Please refer to |hlmarks-options| for a change of color definition of the
 highlights and format of mark name.
 
                                                               *hlmarks-toggle*
-In addition, when you put the mark on the line that put the same mark again,
-that mark is deleted, and it will also remove highlight and mark name on the
-gutter at the same time.
+In addition, when you put the mark described above on the line that put the
+same mark again, that mark is deleted, and it will also remove highlight and
+mark name on the gutter at the same time.
+However, marks by |m'| and |m`| can not be removed, this feature doesn't work.
 
 For other features, please refer to |hlmarks-mappings| and |hlmarks-commands|.
 
@@ -142,9 +149,9 @@ KEY MAPPINGS                                                *hlmarks-mappings*
         Update the highlight and mark name on the basis of the current mark.
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
-        In the range of a-zA-Z, unused mark is put in order from 'a'.
+        In the range of a-z, unused mark is put in order from 'a'.
         Regardless of whether put mark is allowed to highlight and display 
-        name or not, always the character of a-zA-Z is used.
+        name or not, always the character of a-z is used.
         (Also refer to |hlmarks_displaying_marks|)
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*

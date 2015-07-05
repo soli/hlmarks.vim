@@ -65,11 +65,11 @@ function! hlmarks#sign#define()
     let line_hl = s:sign.prefix . 'L_' . mark_type
     let gutter_hl = s:sign.prefix . 'G_' . mark_type
 
-    silent execute printf('highlight default %s %s',
+    silent! execute printf('highlight default %s %s',
       \ line_hl,
       \ {'g:hlmarks_sign_linehl_' . mark_type}
       \ )
-    silent execute printf('highlight default %s %s',
+    silent! execute printf('highlight default %s %s',
       \ gutter_hl,
       \ {'g:hlmarks_sign_gutterhl_' . mark_type}
       \ )
@@ -77,7 +77,7 @@ function! hlmarks#sign#define()
     let last_idx = strlen(mark_bundle) - 1
     for idx in range(0, last_idx)
       let mark_name = mark_bundle[idx : idx]
-      silent execute printf('sign define %s linehl=%s text=%s texthl=%s',
+      silent! execute printf('sign define %s linehl=%s text=%s texthl=%s',
         \ s:sign_name_of(mark_name),
         \ line_hl,
         \ substitute(sign_format, mark_specifier, mark_name, ''),
@@ -204,16 +204,6 @@ function! hlmarks#sign#should_place()
 endfunction
 
 "
-" Determine whether should place sign for a mark or not.
-"
-" Param:  [String] mark: mark name
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#should_place_on_mark(mark)
-  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
-endfunction
-
-"
 " Set sign state cache.
 "
 " Param:  [Dict] (a:1) cache(default=generate_state())
@@ -228,7 +218,7 @@ endfunction
 function! hlmarks#sign#undefine()
   let defined_names = s:extract_definition_names(s:definition_bundle(), s:sign_pattern())
   for sign_name in defined_names
-    silent execute printf('sign undefine %s', sign_name)
+    silent! execute printf('sign undefine %s', sign_name)
   endfor
 endfunction
 
@@ -244,7 +234,7 @@ endfunction
 "
 function! s:definition_bundle()
   redir => bundle
-    silent execute 'sign list'
+    silent! sign list
   redir END
 
   return bundle

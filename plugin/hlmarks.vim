@@ -96,7 +96,7 @@ nnoremap <silent><Plug>(hlmarks-activate)             :<C-u>call hlmarks#activat
 nnoremap <silent><Plug>(hlmarks-inactivate)           :<C-u>call hlmarks#inactivate_plugin()<CR>
 nnoremap <silent><Plug>(hlmarks-reload)               :<C-u>call hlmarks#reload_plugin()<CR>
 nnoremap <silent><Plug>(hlmarks-refresh-signs)        :<C-u>call hlmarks#refresh_signs()<CR>
-nnoremap <silent><Plug>(hlmarks-automark)             :<C-u>call hlmarks#set_mark()<CR>
+nnoremap <silent><Plug>(hlmarks-automark)             :<C-u>call hlmarks#set_automark(1)<CR>
 nnoremap <silent><Plug>(hlmarks-remove-marks-line)    :<C-u>call hlmarks#remove_marks_on_line()<CR>
 nnoremap <silent><Plug>(hlmarks-remove-marks-buffer)  :<C-u>call hlmarks#remove_marks_on_buffer()<CR>
 

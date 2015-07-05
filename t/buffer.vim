@@ -5,6 +5,7 @@ runtime! plugin/hlmarks.vim
 call vspec#hint({'scope': 'hlmarks#buffer#scope()', 'sid': 'hlmarks#buffer#sid()'})
 
 
+
 describe 'numbers()'
 
   it 'should return all buffer numbers'

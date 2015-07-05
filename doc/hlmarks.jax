@@ -98,12 +98,18 @@
     ma
 <
 これでマークを置いた行がハイライトされ、ガターにマーク名 'a>' が表示されます。
+
+|hlmarks_displaying_marks| にセットしたマークは、ハイライトしてマーク名を表
+示します。よって前記以外の手動で置くことが出来ないマークについても、このオプ
+ションにセットすることで、一定間隔後（現在は4000ms後）に更新・表示されます。
+
 ハイライトの色定義やマーク名の書式の変更については |hlmarks-options| を参照し
 てください。
 
                                                               *hlmarks-toggle*
-また、あるマークを置いた行でもう一度同じマークを置くと、そのマークが削除され、
+また、前記のマークを置いた行でもう一度同じマークを置くとそのマークが削除され、
 同時にハイライトとガター上のマーク名も取り除かれます。
+但し、|m'| と |m`| によるマークは削除出来ないため、この機能は動作しません。
 
 その他の機能については、|hlmarks-mappings| と |hlmarks-commands| を参照してく
 ださい。
@@ -137,9 +143,9 @@
         現在のマークに基づいてハイライトとマーク名を更新します。
 
 <Plug>(hlmarks-automark)                                    *hlmarks-automark*
-        a-zA-Z の範囲で、'a' から順に未使用のマークを置きます。
+        a-z の範囲で、'a' から順に未使用のマークを置きます。
         設置されたマークが、ハイライトとマーク名表示の対象かどうかに係わらず、
-        常に a-zA-Z の文字が使用されます。
+        常に a-z の文字が使用されます。
         （|hlmarks_displaying_marks| も参照してください）
 
 <Plug>(hlmarks-remove-marks-line)                      *hlmarks-rm-marks-line*
@@ -179,7 +185,7 @@ hlmarks_displaying_marks                            *hlmarks_displaying_marks*
 
         初期値: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
         ハイライトしてガターに名前を表示するマークを指定します。
-        |hlmarks_sort_stacked_signs|に 1 をセットすると、同じ行に複数のマーク
+        |hlmarks_sort_stacked_signs| に 1 をセットすると、同じ行に複数のマーク
         が存在した場合、このオプションで指定した文字列の順に並び替えられます。
         文字列の左→右の順で重ねて表示しますので、以下の通り設定した場合... >
 
