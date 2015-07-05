@@ -96,7 +96,7 @@ function! hlmarks#refresh_signs()
   call hlmarks#sign#remove_all()
 
   if hlmarks#sign#should_place()
-    for [mark, line_no] in items(hlmarks#mark#covered())
+    for [mark, line_no] in items(hlmarks#mark#specs_for_sign())
       call hlmarks#sign#place_on_mark(line_no, mark)
     endfor
   endif

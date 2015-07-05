@@ -55,11 +55,11 @@ function! hlmarks#mark#can_remove(mark)
 endfunction
 
 "
-" Get marks in current buffer that should be signed.
+" Get specs for mark that is placed and should be signed in current buffer.
 "
-" Return: [Dict] mark specs (see extract())
+" Return: [Dict] mark specs (see s:extract())
 "
-function! hlmarks#mark#covered()
+function! hlmarks#mark#specs_for_sign()
   return s:extract(s:bundle(g:hlmarks_displaying_marks), 0)
 endfunction
 

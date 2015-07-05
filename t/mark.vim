@@ -144,14 +144,14 @@ describe 'can_remove()'
 end
 
 
-describe 'covered()'
+describe 'specs_for_sign()'
 
   it 'should return local/global mark specs only in current buffer'
     let signable_marks = split(g:hlmarks_displaying_marks, '\zs')
     let mark_data = s:prepare_mark({'c': signable_marks, 'o': []})
     let mark_spec = mark_data.c
 
-    let result = hlmarks#mark#covered()
+    let result = hlmarks#mark#specs_for_sign()
 
     Expect len(mark_spec) == len(signable_marks)
     Expect len(result) == len(mark_spec)
@@ -167,7 +167,7 @@ describe 'covered()'
   end
 
   it 'should return empty dict if no mark is placed'
-    Expect hlmarks#mark#covered() == {}
+    Expect hlmarks#mark#specs_for_sign() == {}
   end
 
 end
