@@ -55,15 +55,6 @@ function! hlmarks#mark#can_remove(mark)
 endfunction
 
 "
-" Get specs for mark that is placed and should be signed in current buffer.
-"
-" Return: [Dict] mark specs (see s:extract())
-"
-function! hlmarks#mark#specs_for_sign()
-  return s:extract(s:bundle(g:hlmarks_displaying_marks), 0)
-endfunction
-
-"
 " Generate mark name that is not used.
 "
 " Note:   Mark candidates are a-z(except global) regardless of displaying marks.
@@ -106,16 +97,6 @@ endfunction
 "
 function! hlmarks#mark#get_cache()
   return hlmarks#cache#get(s:mark.cache_name, {})
-endfunction
-
-"
-" Determine whether mark should be handled or not.
-"
-" Param:  [String] mark: candidate mark 
-" Return: [Number] determination (1/0)
-"
-function! hlmarks#mark#should_handle(mark)
-  return strlen(a:mark) == 1 && stridx(s:mark.togglables, a:mark) >= 0
 endfunction
 
 "
@@ -213,6 +194,25 @@ endfunction
 "
 function! hlmarks#mark#set_cache(...)
   call hlmarks#cache#set(s:mark.cache_name, (a:0 ? a:1 : hlmarks#mark#generate_state()))
+endfunction
+
+"
+" Determine whether mark should be handled or not.
+"
+" Param:  [String] mark: candidate mark 
+" Return: [Number] determination (1/0)
+"
+function! hlmarks#mark#should_handle(mark)
+  return strlen(a:mark) == 1 && stridx(s:mark.togglables, a:mark) >= 0
+endfunction
+
+"
+" Get specs for mark that is placed and should be signed in current buffer.
+"
+" Return: [Dict] mark specs (see s:extract())
+"
+function! hlmarks#mark#specs_for_sign()
+  return s:extract(s:bundle(g:hlmarks_displaying_marks), 0)
 endfunction
 
 "
