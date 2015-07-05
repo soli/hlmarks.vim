@@ -1,4 +1,5 @@
 execute 'source ' . expand('%:p:h') . '/t/_common/test_helpers.vim'
+execute 'source ' . expand('%:p:h') . '/t/_common/local_helpers.vim'
 
 runtime! plugin/hlmarks.vim
 
@@ -89,31 +90,6 @@ function! s:prepare_mark(...)
     \ 'w': {'c': current_wno, 'o': other_wno},
     \ 'b': {'c': current_bno, 'o': other_bno},
     \ }
-endfunction
-
-
-function! s:expect_presence(marks, should_present)
-  let bundle = _Grab_('marks')
-  for name in a:marks
-    if a:should_present
-      let matched = []
-      for crumb in bundle
-        if crumb =~# '\v^\s+'.escape(name, '.^[]<>{}()').'\s+\d'
-          call add(matched, name)
-          break
-        endif
-      endfor
-      " Inspector
-      if matched == []
-        Expect name == '(debug)'
-      endif
-      Expect len(matched) == 1
-    else
-      for crumb in bundle
-        Expect crumb !~# '\v^\s+'.escape(name, '.^[]{}()').'\s+\d'
-      endfor
-    endif
-  endfor
 endfunction
 
 
@@ -334,7 +310,7 @@ describe 'remove()'
     call hlmarks#mark#remove(join(enable_remove, ''))
     call hlmarks#mark#remove(unable_remove)
 
-    call s:expect_presence(enable_remove, 0)
+    call Expect_Mark(enable_remove, 0)
 
     call s:prepare_mark(0)
   end
@@ -360,10 +336,10 @@ describe 'remove_all()'
 
     call hlmarks#mark#remove_all()
 
-    call s:expect_presence(should_be_removed, 0)
+    call Expect_Mark(should_be_removed, 0)
 
     execute mark_data.w.o . 'wincmd w'
-    call s:expect_presence(marks_other, 1)
+    call Expect_Mark(marks_other, 1)
     execute mark_data.w.c . 'wincmd w'
 
     call s:prepare_mark(0)
@@ -398,7 +374,7 @@ describe 'remove_on_line()'
       endif
       " Dynamic marks are removed together some static marks, so check by existence.
       Expect index(result, name) >= 0
-      call s:expect_presence([name], 0)
+      call Expect_Mark([name], 0)
     endfor
 
     " Remove marks that can not be set but deletable(but perhaps, .^ are removed in this point).
@@ -406,10 +382,10 @@ describe 'remove_on_line()'
       call hlmarks#mark#remove_on_line(line_no)
     endfor
 
-    call s:expect_presence(['.', '^', '"'], 0)
+    call Expect_Mark(['.', '^', '"'], 0)
 
     execute mark_data.w.o . 'wincmd w'
-    call s:expect_presence(marks_other, 1)
+    call Expect_Mark(marks_other, 1)
     execute mark_data.w.c . 'wincmd w'
 
     call s:prepare_mark(0)
@@ -452,7 +428,7 @@ describe 'set()'
       call hlmarks#mark#set(name)
     endfor
 
-    call s:expect_presence(enable_set_manually, 1)
+    call Expect_Mark(enable_set_manually, 1)
 
     " Revert map.
     silent! execute printf('unmap %s', g:hlmarks_alias_native_mark_cmd)
