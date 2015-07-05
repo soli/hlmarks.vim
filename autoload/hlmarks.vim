@@ -137,7 +137,7 @@ endfunction
 " Note:   Be care to handle marks A-Z0-9, because they are global marks and
 "         getpos() returns those position info in ANOTHER buffer.
 "
-function! hlmarks#set_mark(...)
+function! hlmarks#set_mark_old(...)
   let mark = a:0 ? a:1 : ''
   let target_line = a:0 > 1 ? a:2 : line('.')
 
@@ -200,6 +200,50 @@ function! hlmarks#set_automark(local_mark, ...)
   call hlmarks#set_mark(mark, line_no)
 endfunction!
 
+"
+" Set mark.
+"
+" Param:  [String] mark: mark name
+" Param:  [Number] (a:1) line no.(default='.')
+" Note:   This function delegates placing sign process to hlmarks#refresh_signs().
+"         If process of here becomes heavy, consider that place/update sign in each case.
+"         Mark should be handled as below.
+"           In togglable(s:mark.togglables in mark.vim)  => toggle
+"           In g:hlmarks_displaying_marks                => sign(even if not togglable)
+"
+function! hlmarks#set_mark(mark, ...)
+  let [target_line_no, pos] = [line('.'), []]
+  if a:0 && a:1 != target_line_no
+    let [target_line_no, pos] = [a:1, getpos('.')]
+  endif
+
+  if !empty(pos)
+    call cursor(target_line_no, 0)
+  endif
+
+  let [buffer_no, mark_line_no] = hlmarks#mark#pos(a:mark)
+
+  " Case : Toggle = togglable mark, already on same line.
+  if hlmarks#mark#should_handle(a:mark) && mark_line_no == target_line_no && buffer_no == bufnr('%')
+
+    " Remove mark whether it can be removed or not.
+    call hlmarks#mark#remove(a:mark)
+
+  " Case : Delegate = un-togglable mark.
+  " Case : Move = already in same buffer or used in other buffer(globals).
+  " Case : Set = not yet anywhere.
+  else
+    call hlmarks#mark#set(a:mark)
+  endif
+
+  call hlmarks#refresh_signs()
+
+  if !empty(pos)
+    call setpos('.', pos)
+  endif
+endfunction
+
+"
 " Private.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
