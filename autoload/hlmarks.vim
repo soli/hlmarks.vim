@@ -130,65 +130,6 @@ function! hlmarks#remove_marks_on_line()
 endfunction
 
 "
-" Set mark.
-"
-" Param:  [String] (a:1) mark (default=auto-mark)
-" Param:  [Number] (a:2) line no. (default='.')
-" Note:   Be care to handle marks A-Z0-9, because they are global marks and
-"         getpos() returns those position info in ANOTHER buffer.
-"
-function! hlmarks#set_mark_old(...)
-  let mark = a:0 ? a:1 : ''
-  let target_line = a:0 > 1 ? a:2 : line('.')
-
-  if empty(mark)
-    let mark = hlmarks#mark#generate_name()
-  endif
-
-  " Note: Delegate to original command even if passed mark is invalid.
-  if !hlmarks#mark#should_handle(mark)
-    call hlmarks#mark#set(mark)
-    return
-  endif
-
-  let [buffer_no, line_no] = hlmarks#mark#pos(mark)
-
-  " 1) Mark exists in current buffer(consider marks A-Z0-9) on same line.
-  "    Remove mark even if passed mark should not be signed.
-  if line_no == target_line && buffer_no == bufnr('%')
-    if hlmarks#mark#can_remove(mark)
-      if hlmarks#sign#should_place_on_mark(mark) && hlmarks#sign#should_place()
-        call hlmarks#sign#remove_on_mark(mark)
-        call hlmarks#mark#remove(mark)
-        call hlmarks#sign#set_cache()
-        call hlmarks#mark#set_cache()
-      else
-        call hlmarks#mark#remove(mark)
-      endif
-    endif
-
-    return
-  endif
-
-  " 2) Set mark even if passed mark should not be signed.
-  if !(hlmarks#sign#should_place_on_mark(mark) && hlmarks#sign#should_place())
-    call hlmarks#mark#set(mark)
-    return
-  endif
-
-  " 3) Mark exists in current or another(only A-Z0-9) buffer on another line.
-  if line_no != 0
-    call hlmarks#sign#remove_on_mark(mark, buffer_no)
-  endif
-
-  call hlmarks#sign#place_on_mark(target_line, mark)
-  call hlmarks#mark#set(mark)
-
-  call hlmarks#sign#set_cache()
-  call hlmarks#mark#set_cache()
-endfunction
-
-"
 " Set local/global mark that is gemerated by automatically.
 "
 " Param:  [Number] local_mark: whether generate mark for locals or not(=globals)
