@@ -120,8 +120,7 @@ endfunction
 " Remove marks on current line.
 "
 function! hlmarks#remove_marks_on_line()
-  let removed_marks = hlmarks#mark#remove_on_line()
-  for mark in removed_marks
+  for mark in hlmarks#mark#remove_on_line()
     call hlmarks#sign#remove_on_mark(mark)
   endfor
 
