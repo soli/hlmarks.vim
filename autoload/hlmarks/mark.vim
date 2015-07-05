@@ -123,6 +123,7 @@ endfunction
 "
 " Param:  [String] mark: mark
 " Return: [List] list as [buffer-no, line-no]
+" Note:   All available marks(including invisible) can be get position.
 "
 function! hlmarks#mark#pos(mark)
   " Return value of getpos is [buffer-no, line-no, column-pos, offset].
