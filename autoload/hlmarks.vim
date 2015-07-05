@@ -135,7 +135,7 @@ endfunction
 " Param:  [Number] (a:1) line no.(default='.')
 "
 function! hlmarks#set_automark(local_mark, ...)
-  let mark = a:local_mark ? hlmarks#mark#generate_name() : hlmarks#mark#generate_global_name()
+  let mark = hlmarks#mark#generate_name(a:local_mark ? 1 : 0)
   let line_no = a:0 ? a:1 : line('.')
   call hlmarks#set_mark(mark, line_no)
 endfunction!
