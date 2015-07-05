@@ -12,7 +12,7 @@ endfunction
 
 
 function! s:Local(subject)
-  call _HandleLocalDict_('s:cache', a:subject)
+  return _HandleLocalDict_('s:cache', a:subject)
 endfunction
 
 

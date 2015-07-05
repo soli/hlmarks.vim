@@ -18,7 +18,7 @@ endfunction
 
 
 function! s:Local(subject)
-  call _HandleLocalDict_('s:sign', a:subject)
+  return _HandleLocalDict_('s:sign', a:subject)
 endfunction
 
 
