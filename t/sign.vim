@@ -532,31 +532,6 @@ describe 'should_place()'
 end
 
 
-describe 'should_place_on_mark()'
-
-  before
-    call s:StashGlobal(1)
-  end
-
-  after
-    call s:StashGlobal(0)
-  end
-
-  it 'should return true if passed mark is in list'
-    let g:hlmarks_displaying_marks = 'abc'
-
-    Expect hlmarks#sign#should_place_on_mark('a') to_be_true
-  end
-
-  it 'should return false if passed mark is not in list'
-    let g:hlmarks_displaying_marks = 'abc'
-
-    Expect hlmarks#sign#should_place_on_mark('d') to_be_false
-  end
-
-end
-
-
 describe 's:fix_sign_format()'
 
   before

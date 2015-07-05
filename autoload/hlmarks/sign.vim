@@ -204,16 +204,6 @@ function! hlmarks#sign#should_place()
 endfunction
 
 "
-" Determine whether should place sign for a mark or not.
-"
-" Param:  [String] mark: mark name
-" Return: [Number] determination(0/1)
-"
-function! hlmarks#sign#should_place_on_mark(mark)
-  return stridx(g:hlmarks_displaying_marks, a:mark) >= 0 ? 1 : 0
-endfunction
-
-"
 " Set sign state cache.
 "
 " Param:  [Dict] (a:1) cache(default=generate_state())
