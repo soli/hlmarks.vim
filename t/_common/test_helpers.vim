@@ -1,4 +1,9 @@
 "
+" Common test helpers
+"   ver: 2015-07-06
+"
+
+"
 " For testing this helper self.
 "
 let s:test_helpers = {}
