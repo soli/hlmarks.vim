@@ -1,4 +1,5 @@
 execute 'source ' . expand('%:p:h') . '/t/_common/test_helpers.vim'
+execute 'source ' . expand('%:p:h') . '/t/_common/local_helpers.vim'
 
 runtime! plugin/hlmarks.vim
 
@@ -85,15 +86,13 @@ describe 'define()/undefine()'
   it 'should define signs as fixed format and undefine those definitions'
     call s:Local(1)
     call s:Local({'prefix': 'SLF_'})
-
-    let bundle_func = 's:definition_bundle'
     let total_def_amount = strlen(g:hlmarks_displaying_marks)
 
     call hlmarks#sign#define()
 
-    let bundle = Call(bundle_func)
+    let bundle = _Grab_('sign list')
     let extracted = []
-    for crumb in split(bundle, "\n")
+    for crumb in bundle
       if stridx(crumb, 'SLF_') >= 0
         call add(extracted, crumb)
       endif
@@ -107,9 +106,9 @@ describe 'define()/undefine()'
 
     call hlmarks#sign#undefine()
 
-    let bundle = Call(bundle_func)
+    let bundle = _Grab_('sign list')
     let extracted = []
-    for crumb in split(bundle, "\n")
+    for crumb in bundle
       if stridx(crumb, 'SLF_') >= 0
         call add(extracted, crumb)
       endif
@@ -141,13 +140,9 @@ describe 'generate_state()'
 
     Expect len(extracted) == 1
 
-    unlet spec
-    let extracted_names = []
-    for spec in extracted[0].marks
-      call add(extracted_names, spec[1])
-    endfor
-    Expect extracted_names == sign_names
+    let extracted_names = s:extract_name_from_specs(extracted[0].marks)
 
+    Expect extracted_names == sign_names
     Expect extracted[0].ids == sign_ids
 
     call s:place_sign(0)
@@ -179,15 +174,10 @@ describe 'get_cache()'
     Expect len(cache) == 1
     Expect has_key(cache, '1') to_be_true
 
-    let extracted_names = []
-    let extracted_ids = []
-    for spec in cache['1'].marks
-      call add(extracted_names, spec[1])
-      call add(extracted_ids, spec[0])
-    endfor
+    let extracted_names = s:extract_name_from_specs(cache['1'].marks)
 
     Expect extracted_names == sign_names
-    Expect extracted_ids == sign_ids
+    Expect cache['1'].ids == sign_ids
 
     call s:place_sign(0)
     call s:define_sign(0)
@@ -209,8 +199,6 @@ describe 'place_on_mark()'
     call s:Reg({
       \ 'signs': signs,
       \ 'names': s:extract_name_from_defs(signs),
-      \ 'bundle_func': 's:sign_bundle',
-      \ 'extract_func': 's:extract_sign_specs',
       \})
 
     let g:hlmarks_displaying_marks = 'cba'
@@ -234,15 +222,9 @@ describe 'place_on_mark()'
       call hlmarks#sign#place_on_mark(1, name)
     endfor
 
-    let bundle = Call(s:Reg('bundle_func'))
-    let spec = Call(s:Reg('extract_func'), bundle, 1, s:sign_prefix())
+    let ordered_signs = Expect_Sign(signs, 1, 1)
 
-    Expect spec != {}
-    Expect len(spec.marks) == len(names)
-
-    let placed_signs = s:extract_name_from_specs(spec.marks)
-
-    Expect signs == placed_signs
+    Expect ordered_signs == signs
   end
 
   it 'should place signs on designated line as name for designated mark (ordered)'
@@ -255,16 +237,11 @@ describe 'place_on_mark()'
       call hlmarks#sign#place_on_mark(1, name)
     endfor
 
-    let bundle = Call(s:Reg('bundle_func'))
-    let spec = Call(s:Reg('extract_func'), bundle, 1, s:sign_prefix())
+    let ordered_signs = Expect_Sign(signs, 1, 1)
 
-    Expect spec != {}
-    Expect len(spec.marks) == len(names)
-
-    let placed_signs = s:extract_name_from_specs(spec.marks)
     call reverse(signs)
 
-    Expect signs == placed_signs
+    Expect ordered_signs == signs
   end
 
 end
@@ -275,12 +252,12 @@ describe 'place_with_delta()'
   before
     call s:StashGlobal(1)
     call s:Local(1)
+    call s:Local({'prefix': s:sign_prefix()})
     call s:Reg({
       \ 'signs': s:define_sign(1),
-      \ 'bundle_func': 's:sign_bundle',
-      \ 'extract_func': 's:extract_sign_specs',
       \})
 
+    let g:hlmarks_sort_stacked_signs = 1
     let g:hlmarks_displaying_marks = 'cba'
   end
 
@@ -293,65 +270,36 @@ describe 'place_with_delta()'
   end
 
   it 'should place signs accroding to delta between two cache data'
-    let signs = s:Reg('signs')
+    let signs = deepcopy(s:Reg('signs'), 1)
 
-    " Consider only last one sign name as self sign.
-    call s:Local({'prefix': signs[-1]})
-
-    call s:place_sign(signs)
-
+    call s:place_sign(signs[0:-2])
     call hlmarks#sign#set_cache()
-
-    " Force order self(bottom)->others(upper)
-    let g:hlmarks_stacked_signs_order = 0
+    call s:place_sign([signs[-1]], 10)
 
     call hlmarks#sign#place_with_delta()
 
-    let bundle = Call(s:Reg('bundle_func'))
-    let spec = Call(s:Reg('extract_func'), bundle, 1, signs[-1])
+    let ordered_signs = Expect_Sign(signs, 1, 1)
 
-    Expect spec != {}
-    Expect len(spec.marks) == 1
-    Expect len(spec.others) == (len(signs) - 1)
+    call reverse(signs)
 
-    let placed_signs = s:extract_name_from_specs(spec.marks)
-    let placed_others = s:extract_name_from_specs(spec.others)
-
-    Expect [signs[-1]] == placed_signs
-    Expect signs[0:1] == placed_others
+    Expect ordered_signs == signs
   end
 
   it 'should place signs accroding to delta that calculated by args'
-    let signs = s:Reg('signs')
+    let signs = deepcopy(s:Reg('signs'), 1)
 
-    " Consider only last one sign name as self sign.
-    call s:Local({'prefix': signs[-1]})
+    call s:place_sign(signs[0:-2])
+    let before = hlmarks#sign#generate_state()
+    call s:place_sign([signs[-1]], 10)
+    let after = hlmarks#sign#generate_state()
 
-    " Get empty state.
-    let cache = hlmarks#sign#get_cache()
+    call hlmarks#sign#place_with_delta(before, after)
 
-    call s:place_sign(signs)
+    let ordered_signs = Expect_Sign(signs, 1, 1)
 
-    " Get current state.
-    let snapshot = hlmarks#sign#get_cache()
+    call reverse(signs)
 
-    " Force order self(bottom)->others(upper)
-    let g:hlmarks_stacked_signs_order = 0
-
-    call hlmarks#sign#place_with_delta(cache, snapshot)
-
-    let bundle = Call(s:Reg('bundle_func'))
-    let spec = Call(s:Reg('extract_func'), bundle, 1, signs[-1])
-
-    Expect spec != {}
-    Expect len(spec.marks) == 1
-    Expect len(spec.others) == (len(signs) - 1)
-
-    let placed_signs = s:extract_name_from_specs(spec.marks)
-    let placed_others = s:extract_name_from_specs(spec.others)
-
-    Expect [signs[-1]] == placed_signs
-    Expect signs[0:1] == placed_others
+    Expect ordered_signs == signs
   end
 
 end
@@ -367,7 +315,6 @@ describe 'remove_all()'
 
     call s:Reg({
       \ 'signs': signs,
-      \ 'bundle_func': 's:sign_bundle',
       \})
 
     call s:place_sign(signs)
@@ -383,21 +330,13 @@ describe 'remove_all()'
   it 'should remove all signs on mark in current buffer if no buffer number is designated'
     call hlmarks#sign#remove_all()
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in s:Reg('signs')
-      Expect bundle !~# sign_name
-    endfor
+    call Expect_Sign(s:Reg('signs'), 1, 0)
   end
 
   it 'should remove all signs on mark in designated buffer'
     call hlmarks#sign#remove_all([bufnr('%')])
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in s:Reg('signs')
-      Expect bundle !~# sign_name
-    endfor
+    call Expect_Sign(s:Reg('signs'), 1, 0)
   end
 
 end
@@ -414,7 +353,6 @@ describe 'remove_on_mark()'
     call s:Reg({
       \ 'signs': signs,
       \ 'names': s:extract_name_from_defs(signs),
-      \ 'bundle_func': 's:sign_bundle',
       \})
 
     call s:place_sign(signs)
@@ -429,30 +367,22 @@ describe 'remove_on_mark()'
 
   it 'should remove sign named designated mark name in current buffer if no buffer number is designated'
     let signs = s:Reg('signs')
+    let removed_sign = s:Reg('names')[0]
 
-    call hlmarks#sign#remove_on_mark(s:Reg('names')[0])
+    call hlmarks#sign#remove_on_mark(removed_sign)
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    Expect bundle !~# signs[0]
-
-    for sign_name in signs[1:]
-      Expect bundle =~# sign_name
-    endfor
+    call Expect_Sign([removed_sign], 1, 0)
+    call Expect_Sign(signs[1:], 1, 1)
   end
 
   it 'should remove sign named designated mark name in designated buffer'
     let signs = s:Reg('signs')
+    let removed_sign = s:Reg('names')[0]
 
-    call hlmarks#sign#remove_on_mark(s:Reg('names')[0], bufnr('%'))
+    call hlmarks#sign#remove_on_mark(removed_sign, bufnr('%'))
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    Expect bundle !~# signs[0]
-
-    for sign_name in signs[1:]
-      Expect bundle =~# sign_name
-    endfor
+    call Expect_Sign([removed_sign], 1, 0)
+    call Expect_Sign(signs[1:], 1, 1)
   end
 
 end
@@ -467,7 +397,7 @@ describe 'should_place()'
   end
 
   after
-    close!
+    quit!
 
     call s:StashGlobal(0)
   end
@@ -596,7 +526,7 @@ end
 describe 's:name_sorter()'
 
   it 'should sort according to list of character order'
-    SKIP 'Currently unable to test.'
+    " Note: This is tested in s:reorder_spec().
   end
 
 end
@@ -604,21 +534,18 @@ end
 
 describe 's:definition_bundle()'
 
-  before
-    call s:Reg({'signs': s:define_sign(1)})
-  end
-
-  after
-    call s:define_sign(0)
-    call s:Reg(0)
-  end
-
   it 'should return currently defined signs as single string crumb'
+    let signs = s:define_sign(1)
     let bundle = Call('s:definition_bundle')
-    let signs = s:Reg('signs')
 
     Expect bundle != '' 
-    Expect bundle =~# signs[0]
+
+    for name in signs
+      Expect bundle =~# name
+    endfor
+
+    call s:define_sign(0)
+    call s:Reg(0)
   end
 
 end
@@ -675,19 +602,25 @@ describe 's:extract_definition_names()'
   it 'should extarct sign names from strings by s:definition_bundle()'
     let signs = s:Reg('signs')
     let bundle = Call(s:Reg('bundle_func'))
-    let names = Call(s:Reg('func'), bundle, signs[0])
 
-    Expect len(names) == 1
-    Expect names == [signs[0]]
+    let names = Call(s:Reg('func'), bundle, '^'.s:sign_prefix())
+
+    Expect len(names) == len(signs)
+    Expect names == signs
   end
 
-  it 'should return empty list if no sign name is found or passed empty string'
+  it 'should return empty list if passed empty string'
     let signs = s:Reg('signs')
-    let names = Call(s:Reg('func'), '', signs[0])
+
+    let names = Call(s:Reg('func'), '', signs)
 
     Expect names == []
+  end
 
+  it 'should return empty list if no sign name is found'
+    let signs = s:Reg('signs')
     let bundle = Call(s:Reg('bundle_func'))
+
     let names = Call(s:Reg('func'), bundle, '^__never_match__')
 
     Expect names == []
@@ -714,11 +647,11 @@ describe 's:extract_sign_specs()'
     " Note: Signs are placed following order, AND appears in bundle(sign place
     "       buffer=n) with INVERSE order.
     call s:Reg({'sign_specs': [
-      \ [1, 12, 'MYS_b'],
-      \ [1, 11, 'MYS_a'],
+      \ [1, 12, 'SLF_b'],
+      \ [1, 11, 'SLF_a'],
       \ [2, 26, 'OTS_2'],
-      \ [2, 22, 'MYS_d'],
-      \ [2, 21, 'MYS_c'],
+      \ [2, 22, 'SLF_d'],
+      \ [2, 21, 'SLF_c'],
       \ [2, 25, 'OTS_1'],
       \ [3, 32, 'OTS_4'],
       \ [3, 31, 'OTS_3'],
@@ -745,33 +678,33 @@ describe 's:extract_sign_specs()'
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = s:Reg('sign_spec_tmpl')
 
-    Expect Call(func_name, bundle, 1, '^MYS') == expected
+    Expect Call(func_name, bundle, 1, '^SLF') == expected
   end
 
   it 'should extract spec-hash contains both(self,others) signs (line-no specified)'
     let func_name = s:Reg('func')
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
-      \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
+      \ 'marks':  [ [22, 'SLF_d'], [21, 'SLF_c'] ],
       \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
       \ 'ids':    [ 26, 22, 21, 25 ],
       \ 'order':  [ 0, 1, 1, 0 ],
       \ }
 
-    Expect Call(func_name, bundle, 2, '^MYS') == expected
+    Expect Call(func_name, bundle, 2, '^SLF') == expected
   end
 
   it 'should extract spec-hash only contains only signs of self (line-no specified)'
     let func_name = s:Reg('func')
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
-      \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+      \ 'marks':  [ [12, 'SLF_b'], [11, 'SLF_a'] ],
       \ 'others': [],
       \ 'ids':    [ 12, 11 ],
       \ 'order':  [ 1, 1 ],
       \ }
 
-    Expect Call(func_name, bundle, 1, '^MYS') == expected
+    Expect Call(func_name, bundle, 1, '^SLF') == expected
   end
 
   it 'should extract spec-hash only contains only signs of others (line-no specified)'
@@ -784,7 +717,7 @@ describe 's:extract_sign_specs()'
       \ 'order':  [ 0, 0 ],
       \ }
 
-    Expect Call(func_name, bundle, 3, '^MYS') == expected
+    Expect Call(func_name, bundle, 3, '^SLF') == expected
   end
 
   it 'should extract all signs as line-no => spec-hash (line-no = 0)'
@@ -792,13 +725,13 @@ describe 's:extract_sign_specs()'
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
     let expected = {
       \ '1': {
-        \ 'marks':  [ [12, 'MYS_b'], [11, 'MYS_a'] ],
+        \ 'marks':  [ [12, 'SLF_b'], [11, 'SLF_a'] ],
         \ 'others': [],
         \ 'ids':    [ 12, 11 ],
         \ 'order':  [ 1, 1 ],
         \ },
       \ '2': {
-        \ 'marks':  [ [22, 'MYS_d'], [21, 'MYS_c'] ],
+        \ 'marks':  [ [22, 'SLF_d'], [21, 'SLF_c'] ],
         \ 'others': [ [26, 'OTS_2'], [25, 'OTS_1'] ],
         \ 'ids':    [ 26, 22, 21, 25 ],
         \ 'order':  [ 0, 1, 1, 0 ],
@@ -811,7 +744,7 @@ describe 's:extract_sign_specs()'
         \ }
       \ }
 
-    Expect Call(func_name, bundle, 0, '^MYS') == expected
+    Expect Call(func_name, bundle, 0, '^SLF') == expected
   end
 
 end
@@ -825,7 +758,6 @@ describe 's:extract_sign_ids()'
     call s:Reg({
       \ 'func': 's:extract_sign_ids',
       \ 'bundle_func': 's:sign_bundle',
-      \ 'signs': signs,
       \ 'ids': s:place_sign(signs),
       \ })
   end
@@ -838,29 +770,37 @@ describe 's:extract_sign_ids()'
 
   it 'should return empty list if no sign in buffer'
     call s:place_sign(0)
-
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
-    let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
+
+    let ids = Call(s:Reg('func'), bundle, '^'.s:sign_prefix())
 
     Expect len(ids) == 0
   end
 
   it 'should extract id of sign matched passed pattern from strings by s:sign_bundle()'
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
-    let ids = Call(s:Reg('func'), bundle, s:Reg('signs')[0])
-    let expected = s:Reg('ids')
+    let expected = deepcopy(s:Reg('ids'), 1)
 
-    Expect len(ids) == 1
-    Expect ids == [expected[0]]
+    let ids = Call(s:Reg('func'), bundle, '^'.s:sign_prefix())
+
+    Expect len(ids) == len(expected)
+
+    call sort(ids)
+    call sort(expected)
+
+    Expect ids == expected
   end
 
   it 'should extract all id of sign if passed empty pattern'
     let bundle = Call(s:Reg('bundle_func'), bufnr('%'))
-    let ids = Call(s:Reg('func'), bundle, '')
-    let expected = s:Reg('ids')
+    let expected = deepcopy(s:Reg('ids'), 1)
 
-    Expect len(ids) == len(expected)
-    Expect sort(ids, 'n') == sort(deepcopy(expected), 'n')
+    let ids = Call(s:Reg('func'), bundle, '')
+
+    call sort(ids)
+    call sort(expected)
+
+    Expect ids == expected
   end
 
 end
@@ -914,7 +854,6 @@ describe 's:place()'
   it 'should place signs according to passed specs'
     let sign_names = s:define_sign(1)
 
-    let bundle_func = 's:sign_bundle'
     let sign_specs = []
     let id = 1
     for name in sign_names
@@ -923,12 +862,8 @@ describe 's:place()'
     endfor
 
     call Call('s:place', 1, sign_specs)
-    let bundle = Call(bundle_func)
-    unlet name
 
-    for name in sign_names
-      Expect bundle =~ name
-    endfor
+    call Expect_Sign(sign_names, 1, 1)
 
     call s:place_sign(0)
     call s:define_sign(0)
@@ -948,7 +883,6 @@ describe 's:remove_with_ids()'
     call s:Reg({
       \ 'signs': signs,
       \ 'ids': s:place_sign(signs),
-      \ 'bundle_func': 's:sign_bundle',
       \})
   end
 
@@ -964,13 +898,8 @@ describe 's:remove_with_ids()'
 
     call Call('s:remove_with_ids', s:Reg('ids')[0:1])
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in signs[0:1]
-      Expect bundle !~# sign_name
-    endfor
-
-    Expect bundle =~# signs[-1]
+    call Expect_Sign(signs[0:1], 1, 0)
+    call Expect_Sign(signs[-1:-1], 1, 1)
   end
 
   it 'should remove sign with designated id in designated buffer'
@@ -978,13 +907,8 @@ describe 's:remove_with_ids()'
 
     call Call('s:remove_with_ids', s:Reg('ids')[0:1], bufnr('%'))
 
-    let bundle = Call(s:Reg('bundle_func'))
-
-    for sign_name in signs[0:1]
-      Expect bundle !~# sign_name
-    endfor
-
-    Expect bundle =~# signs[-1]
+    call Expect_Sign(signs[0:1], 1, 0)
+    call Expect_Sign(signs[-1:-1], 1, 1)
   end
 
 end
