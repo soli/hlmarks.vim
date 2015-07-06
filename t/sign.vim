@@ -27,10 +27,11 @@ function! s:sign_prefix()
 endfunction
 
 
-function! s:define_sign(define)
+function! s:define_sign(define, ...)
+  let signs = a:0 ? a:1 : ['a', 'b', 'c']
   let sign_names = []
   " Should define for single chars in displaying list.
-  for name in ['a', 'b', 'c']
+  for name in signs
     let sign_name = s:sign_prefix().name
     execute 'sign '.(a:define ? '' : 'un').'define '.sign_name
     call add(sign_names, sign_name)
@@ -58,7 +59,7 @@ function! s:place_sign(sign_names)
 endfunction
 
 
-function! s:extract_name(sign_names)
+function! s:extract_name_from_defs(sign_names)
   let prefix = s:sign_prefix()
   let names = []
   for sign_name in a:sign_names
@@ -68,7 +69,7 @@ function! s:extract_name(sign_names)
 endfunction
 
 
-function! s:extract_sign_name(sign_units)
+function! s:extract_name_from_specs(sign_units)
   let sign_names = []
   for unit in a:sign_units
     call add(sign_names, unit[1])
@@ -206,7 +207,7 @@ describe 'place_on_mark()'
 
     call s:Reg({
       \ 'signs': signs,
-      \ 'names': s:extract_name(signs),
+      \ 'names': s:extract_name_from_defs(signs),
       \ 'bundle_func': 's:sign_bundle',
       \ 'extract_func': 's:extract_sign_specs',
       \})
@@ -238,7 +239,7 @@ describe 'place_on_mark()'
     Expect spec != {}
     Expect len(spec.marks) == len(names)
 
-    let placed_signs = s:extract_sign_name(spec.marks)
+    let placed_signs = s:extract_name_from_specs(spec.marks)
 
     Expect signs == placed_signs
   end
@@ -259,7 +260,7 @@ describe 'place_on_mark()'
     Expect spec != {}
     Expect len(spec.marks) == len(names)
 
-    let placed_signs = s:extract_sign_name(spec.marks)
+    let placed_signs = s:extract_name_from_specs(spec.marks)
     call reverse(signs)
 
     Expect signs == placed_signs
@@ -312,8 +313,8 @@ describe 'place_with_delta()'
     Expect len(spec.marks) == 1
     Expect len(spec.others) == (len(signs) - 1)
 
-    let placed_signs = s:extract_sign_name(spec.marks)
-    let placed_others = s:extract_sign_name(spec.others)
+    let placed_signs = s:extract_name_from_specs(spec.marks)
+    let placed_others = s:extract_name_from_specs(spec.others)
 
     Expect [signs[-1]] == placed_signs
     Expect signs[0:1] == placed_others
@@ -345,8 +346,8 @@ describe 'place_with_delta()'
     Expect len(spec.marks) == 1
     Expect len(spec.others) == (len(signs) - 1)
 
-    let placed_signs = s:extract_sign_name(spec.marks)
-    let placed_others = s:extract_sign_name(spec.others)
+    let placed_signs = s:extract_name_from_specs(spec.marks)
+    let placed_others = s:extract_name_from_specs(spec.others)
 
     Expect [signs[-1]] == placed_signs
     Expect signs[0:1] == placed_others
@@ -411,7 +412,7 @@ describe 'remove_on_mark()'
 
     call s:Reg({
       \ 'signs': signs,
-      \ 'names': s:extract_name(signs),
+      \ 'names': s:extract_name_from_defs(signs),
       \ 'bundle_func': 's:sign_bundle',
       \})
 
