@@ -41,14 +41,15 @@ function! s:define_sign(define, ...)
 endfunction
 
 
-function! s:place_sign(sign_names)
+function! s:place_sign(sign_names, ...)
+  let start_id = a:0 ? a:1 : 1
   if type(a:sign_names) == type(1) && a:sign_names == 0
     sign unplace *
     return []
   endif
 
   let sign_ids = []
-  let id = 1
+  let id = start_id
   for sign_name in a:sign_names
     execute printf('sign place %s line=%s name=%s buffer=%s', id, 1, sign_name, bufnr('%'))
     call add(sign_ids, id)
