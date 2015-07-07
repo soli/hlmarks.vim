@@ -285,12 +285,6 @@ endfunction
 function! s:toggle_usercmd(flag)
   let prefix = g:hlmarks_command_prefix
 
-  if a:flag
-    silent! execute printf('command! %sOff call hlmarks#inactivate_plugin()', prefix)
-    silent! execute printf('command! %sReload call hlmarks#reload_plugin()', prefix)
-    return
-  endif
-
   redir => bundle
     silent! execute printf('command %s', prefix)
   redir END
@@ -302,7 +296,12 @@ function! s:toggle_usercmd(flag)
     endif
   endfor
 
-  silent! execute printf('command! %sOn  call hlmarks#activate_plugin()', prefix)
+  if a:flag
+    silent! execute printf('command! %sOff call hlmarks#inactivate_plugin()', prefix)
+    silent! execute printf('command! %sReload call hlmarks#reload_plugin()', prefix)
+  else
+    silent! execute printf('command! %sOn  call hlmarks#activate_plugin()', prefix)
+  endif
 endfunction
 
 "
