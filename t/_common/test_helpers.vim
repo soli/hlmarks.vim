@@ -1,12 +1,16 @@
 "
 " Common test helpers
-"   ver: 2015-07-07
+"   ver: 2015-07-07.02
 "
 
 "
 " For testing this helper self.
 "
 let s:test_helpers = {}
+let s:test_helpers_func = {'testvar': 0}
+function! s:test_helpers_func.test()
+  let self.testvar = 1
+endfunction
 function! test_helpers#scope()
   return s:
 endfunction
@@ -89,7 +93,8 @@ function! _HandleLocalDict_(value_name, subject, ...)
 
   " Refer
   elseif subject_type == type('')
-    return has_key(local, a:subject) ? local[a:subject] : deepcopy(local, 1)
+    " DO NOT copy local because it may be used to access function in dictionary.
+    return has_key(local, a:subject) ? local[a:subject] : local
 
   else
     throw 'Invalid argument.'
