@@ -1,6 +1,6 @@
 "
 " Common test helpers
-"   ver: 2015-07-06
+"   ver: 2015-07-07
 "
 
 "
@@ -89,7 +89,7 @@ function! _HandleLocalDict_(value_name, subject, ...)
 
   " Refer
   elseif subject_type == type('')
-    return local[a:subject]
+    return has_key(local, a:subject) ? local[a:subject] : deepcopy(local, 1)
 
   else
     throw 'Invalid argument.'
