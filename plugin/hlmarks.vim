@@ -102,14 +102,6 @@ nnoremap <silent><Plug>(hlmarks-remove-marks-line)    :<C-u>call hlmarks#remove_
 nnoremap <silent><Plug>(hlmarks-remove-marks-buffer)  :<C-u>call hlmarks#remove_marks_on_buffer()<CR>
 
 "
-" User commands. (Regardless of whether plugin is activated or not)
-" ______________________________________________________________________________
-" ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-silent! execute printf('command! %sOn  call hlmarks#activate_plugin()', g:hlmarks_command_prefix)
-silent! execute printf('command! %sOff call hlmarks#inactivate_plugin()', g:hlmarks_command_prefix)
-
-"
 " Completion.
 " ______________________________________________________________________________
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''

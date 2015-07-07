@@ -283,23 +283,26 @@ endfunction
 " Param:  [Any] flag: whether enable user-cmd or not
 "
 function! s:toggle_usercmd(flag)
+  let prefix = g:hlmarks_command_prefix
+
   if a:flag
-    silent! execute printf(
-      \ 'command!          %sReload call hlmarks#reload_plugin()',
-      \ g:hlmarks_command_prefix)
+    silent! execute printf('command! %sOff call hlmarks#inactivate_plugin()', prefix)
+    silent! execute printf('command! %sReload call hlmarks#reload_plugin()', prefix)
     return
   endif
 
   redir => bundle
-    silent! execute printf('command %s', g:hlmarks_command_prefix)
+    silent! execute printf('command %s', prefix)
   redir END
 
   for crumb in split(bundle, "\n")
-    let matched = matchlist(crumb, '\v^\s+(' . g:hlmarks_command_prefix . '\S+)\s+.+$')
-    if !empty(matched) && match(matched[1], '\v(On|Off)$') < 0
+    let matched = matchlist(crumb, '\v^\s+(' . prefix . '\S+)\s+.+$')
+    if !empty(matched)
       silent! execute printf('delcommand %s', matched[1])
     endif
   endfor
+
+  silent! execute printf('command! %sOn  call hlmarks#activate_plugin()', prefix)
 endfunction
 
 "

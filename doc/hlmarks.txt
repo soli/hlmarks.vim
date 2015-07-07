@@ -128,9 +128,16 @@ COMMANDS                                                    *hlmarks-commands*
 
 :HlMarksOn                                          *hlmarks-command-activate*
         Activate this plug-in.
+        (Defined only when plug-in is inactivated)
 
 :HlMarksOff                                       *hlmarks-command-inactivate*
         Inactivate this plug-in.
+        (Defined only when plug-in is activated)
+
+:HlMarksReload                                        *hlmarks-command-reload*
+        Reload plug-in.
+        Update highlight and mark name with latest configurations.
+        (Defined only when plug-in is activated)
 
 ------------------------------------------------------------------------------
 KEY MAPPINGS                                                *hlmarks-mappings*
@@ -142,8 +149,8 @@ KEY MAPPINGS                                                *hlmarks-mappings*
         Inactivate this plug-in.
 
 <Plug>(hlmarks-reload)                                        *hlmarks-reload*
-        Reload the options for the highlight and reconfigure, update the state
-        by |hlmarks-refresh|.
+        Update highlight and mark name with latest configurations by reloading
+        plug-in.
 
 <Plug>(hlmarks-refresh-signs)                                *hlmarks-refresh*
         Update the highlight and mark name on the basis of the current mark.
@@ -349,6 +356,8 @@ For the format of the help file, referring to the following project.
 ==============================================================================
 CHANGELOG                                                  *hlmarks-changelog*
 
+2015/07/xx  version 0.5~
+    + Change defined user command according to state of plug-in.
 2015/07/06  version 0.4~
     + Split automark function to a-z and A-Z.
     + Add tests.
