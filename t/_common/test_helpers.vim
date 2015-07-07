@@ -1,6 +1,6 @@
 "
 " Common test helpers
-"   ver: 2015-07-07.02
+"   ver: 2015-07-08
 "
 
 "
@@ -53,6 +53,7 @@ endfunction
 "     let x = _HandleLocalDict_('s:foo', 'bar')
 "   Recover at end of each test.
 "     call _HandleLocalDict_('s:foo', 0)
+" Note: Duplication call of preservation do not affect process.
 " Note: For convenience, define wrapper function in each test file.
 "   function! s:HL(s)
 "     call _HandleLocalDict_('s:foo', s, '__long_specific_stack_name_here__')
@@ -75,7 +76,9 @@ function! _HandleLocalDict_(value_name, subject, ...)
 
   " Preserve
   if subject_type == type(1) && a:subject == 1
-    let g:{stack_name} = deepcopy(local, 1)
+    if !has_key(g:, stack_name)
+      let g:{stack_name} = deepcopy(local, 1)
+    endif
 
   " Recover
   elseif subject_type == type(1) && a:subject == 0
