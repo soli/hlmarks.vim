@@ -81,12 +81,9 @@ endfunction
 "
 " Reload plugin.
 "
-" Note:   Use this function when change configuration about sign styles.
-"
 function! hlmarks#reload_plugin()
-  call s:sweep_out()
-  call hlmarks#sign#define()
-  call hlmarks#refresh_signs()
+  call hlmarks#inactivate_plugin()
+  call hlmarks#activate_plugin()
 endfunction
 
 "
