@@ -11,7 +11,13 @@ set cpo&vim
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let s:plugin = {
-  \ 'activated': 0
+  \ 'activated': 0,
+  \ 'preserved': {
+  \   'hlmarks_prefix_key': '',
+  \   'hlmarks_alias_native_mark_cmd': '',
+  \   'hlmarks_command_prefix': '',
+  \   'hlmarks_autocmd_group': ''
+  \ }
   \ }
 
 function! s:_export_()
@@ -46,6 +52,7 @@ function! hlmarks#activate_plugin()
     return
   endif
 
+  call s:preserve_definition_keyword()
   call hlmarks#sign#define()
   call hlmarks#refresh_signs()
   call s:toggle_key_mappings(1)
@@ -212,6 +219,16 @@ function! s:plugin.is_active()
 endfunction
 
 "
+" Preserve global variable that is used for some key/name/prefix in definition.
+"
+function! s:preserve_definition_keyword()
+  let target = keys(s:plugin.preserved)
+  for target_name in target
+    let s:plugin.preserved[target_name] = get(g:, target_name, '')
+  endfor
+endfunction
+
+"
 " Sweep out various related data.
 "
 function! s:sweep_out()
@@ -229,7 +246,7 @@ endfunction
 "
 function! s:toggle_autocmd(flag)
   silent! execute printf('augroup %s', g:hlmarks_autocmd_group)
-    autocmd!
+    execute printf('autocmd! %s', s:plugin.preserved.hlmarks_autocmd_group)
 
     if a:flag
       autocmd BufEnter,FileChangedShellPost * call hlmarks#refresh_signs()
@@ -248,13 +265,15 @@ endfunction
 " Param:  [Any] flag: whether enable key-mappings or not
 "
 function! s:toggle_key_mappings(flag)
-  silent! execute printf('unmap %s', g:hlmarks_alias_native_mark_cmd)
+  let preserved_prefix_key = s:plugin.preserved.hlmarks_prefix_key
+
+  silent! execute printf('unmap %s', s:plugin.preserved.hlmarks_alias_native_mark_cmd)
   silent! nunmap  m
-  silent! execute printf('nunmap  %smr', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smm', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smM', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %sml', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smb', g:hlmarks_prefix_key)
+  silent! execute printf('nunmap  %smr', preserved_prefix_key)
+  silent! execute printf('nunmap  %smm', preserved_prefix_key)
+  silent! execute printf('nunmap  %smM', preserved_prefix_key)
+  silent! execute printf('nunmap  %sml', preserved_prefix_key)
+  silent! execute printf('nunmap  %smb', preserved_prefix_key)
 
   if a:flag && g:hlmarks_use_default_key_maps
 
@@ -283,14 +302,15 @@ endfunction
 " Param:  [Any] flag: whether enable user-cmd or not
 "
 function! s:toggle_usercmd(flag)
+  let preserved_prefix = s:plugin.preserved.hlmarks_command_prefix
   let prefix = g:hlmarks_command_prefix
 
   redir => bundle
-    silent! execute printf('command %s', prefix)
+    silent! execute printf('command %s', preserved_prefix)
   redir END
 
   for crumb in split(bundle, "\n")
-    let matched = matchlist(crumb, '\v^\s+(' . prefix . '\S+)\s+.+$')
+    let matched = matchlist(crumb, '\v^\s+(' . preserved_prefix . '\S+)\s+.+$')
     if !empty(matched)
       silent! execute printf('delcommand %s', matched[1])
     endif
