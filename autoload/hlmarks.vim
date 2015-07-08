@@ -324,7 +324,14 @@ endfunction
 "
 " Refresh signs with latest state in current buffer if needed.
 "
-" Note:   Leave echoes for further debug.
+" Note:   Update in following case.
+"           Case1. Mark state is changed.
+"             This case is caused by changing state of un-settable marks, other plugin
+"             placed mark, user executes command directly, etc.
+"             Note that calculating difference of mark state is complecated, so refresh all.
+"           Case2. Only sign state is changed.
+"             This case indicates that other plugin placed sign, user executes command, etc.
+"             Note that sign cache has info of line that only contains sign placed by others.
 "
 function! s:update_signs()
   if !hlmarks#sign#should_place()
@@ -337,20 +344,14 @@ function! s:update_signs()
   let sign_snapshot = hlmarks#sign#generate_state()
   let sign_cache = hlmarks#sign#get_cache()
 
-  " 1) If mark state is changed, refresh all signs regardless of it state.
-  "    Calculate difference of mark state is complecated, so refresh all.
+  " Note: Leave echoes for further debug.
+
   if mark_snapshot != mark_cache
     call hlmarks#refresh_signs()
-
     " echo reltimestr(reltime()) . '(by change of marks)'
-
-  " 2) If only sign state is changed, it indicates other sign is placed
-  "    by other plugins, by user-operations, etc.
-  "    Note: sign state contains line that only has sign marked by others.
   elseif sign_snapshot != sign_cache
     call hlmarks#sign#place_with_delta(sign_cache, sign_snapshot)
     call hlmarks#sign#set_cache()
-
     " echo reltimestr(reltime()) . '(by change of signs)'
   else
     " echo reltimestr(reltime()) . '(no changes)'
