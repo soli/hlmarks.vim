@@ -345,7 +345,6 @@ For execution of test, run the following command in plugin directory. >
       or
     rake test
 <
-It should be noted, combined test is not enough now. Please be forewarned.
 About writing test and others, please refer to the documentation and samples
 of vim-vspec.
 
@@ -356,8 +355,10 @@ For the format of the help file, referring to the following project.
 ==============================================================================
 CHANGELOG                                                  *hlmarks-changelog*
 
-2015/07/xx  version 0.5~
+2015/07/08  version 0.5~
     + Change defined user command according to state of plug-in.
+    + Add tests.
+    + Fix comments and implementation.
 2015/07/06  version 0.4~
     + Split automark function to a-z and A-Z.
     + Add tests.
