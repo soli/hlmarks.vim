@@ -162,7 +162,7 @@ function! hlmarks#set_mark(mark, ...)
   endif
 
   if !empty(pos)
-    call cursor(target_line_no, 0)
+    call cursor(target_line_no, 1)
   endif
 
   let [buffer_no, mark_line_no] = hlmarks#mark#pos(a:mark)
