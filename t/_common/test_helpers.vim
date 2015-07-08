@@ -1,12 +1,16 @@
 "
 " Common test helpers
-"   ver: 2015-07-06
+"   ver: 2015-07-08
 "
 
 "
 " For testing this helper self.
 "
 let s:test_helpers = {}
+let s:test_helpers_func = {'testvar': 0}
+function! s:test_helpers_func.test()
+  let self.testvar = 1
+endfunction
 function! test_helpers#scope()
   return s:
 endfunction
@@ -49,6 +53,7 @@ endfunction
 "     let x = _HandleLocalDict_('s:foo', 'bar')
 "   Recover at end of each test.
 "     call _HandleLocalDict_('s:foo', 0)
+" Note: Duplication call of preservation do not affect process.
 " Note: For convenience, define wrapper function in each test file.
 "   function! s:HL(s)
 "     call _HandleLocalDict_('s:foo', s, '__long_specific_stack_name_here__')
@@ -71,7 +76,9 @@ function! _HandleLocalDict_(value_name, subject, ...)
 
   " Preserve
   if subject_type == type(1) && a:subject == 1
-    let g:{stack_name} = deepcopy(local, 1)
+    if !has_key(g:, stack_name)
+      let g:{stack_name} = deepcopy(local, 1)
+    endif
 
   " Recover
   elseif subject_type == type(1) && a:subject == 0
@@ -89,7 +96,8 @@ function! _HandleLocalDict_(value_name, subject, ...)
 
   " Refer
   elseif subject_type == type('')
-    return local[a:subject]
+    " DO NOT copy local because it may be used to access function in dictionary.
+    return has_key(local, a:subject) ? local[a:subject] : local
 
   else
     throw 'Invalid argument.'

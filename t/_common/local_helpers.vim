@@ -39,7 +39,7 @@ function! Expect_Sign(signs, line_no, should_present)
     for crumb in bundle
       let matched = ''
       for name in signs
-        if crumb =~# '\vline\='.a:line_no.'.+name\='.name
+        if crumb =~# '\vline\='.a:line_no.'.+name\='.escape(name, '.^[]{}()')
           let matched = name
           break
         endif
@@ -57,7 +57,7 @@ function! Expect_Sign(signs, line_no, should_present)
   else
     for name in a:signs
       for crumb in bundle
-        Expect crumb !~# '\vline\='.a:line_no.'.+name\='.name
+        Expect crumb !~# '\vline\='.a:line_no.'.+name\='.escape(name, '.^[]{}()')
       endfor
     endfor
   endif

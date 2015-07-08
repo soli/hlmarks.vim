@@ -11,7 +11,13 @@ set cpo&vim
 " ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let s:plugin = {
-  \ 'activated': 0
+  \ 'activated': 0,
+  \ 'preserved': {
+  \   'hlmarks_prefix_key': '',
+  \   'hlmarks_alias_native_mark_cmd': '',
+  \   'hlmarks_command_prefix': '',
+  \   'hlmarks_autocmd_group': ''
+  \ }
   \ }
 
 function! s:_export_()
@@ -46,6 +52,7 @@ function! hlmarks#activate_plugin()
     return
   endif
 
+  call s:preserve_definition_keyword()
   call hlmarks#sign#define()
   call hlmarks#refresh_signs()
   call s:toggle_key_mappings(1)
@@ -74,12 +81,9 @@ endfunction
 "
 " Reload plugin.
 "
-" Note:   Use this function when change configuration about sign styles.
-"
 function! hlmarks#reload_plugin()
-  call s:sweep_out()
-  call hlmarks#sign#define()
-  call hlmarks#refresh_signs()
+  call hlmarks#inactivate_plugin()
+  call hlmarks#activate_plugin()
 endfunction
 
 "
@@ -158,7 +162,7 @@ function! hlmarks#set_mark(mark, ...)
   endif
 
   if !empty(pos)
-    call cursor(target_line_no, 0)
+    call cursor(target_line_no, 1)
   endif
 
   let [buffer_no, mark_line_no] = hlmarks#mark#pos(a:mark)
@@ -212,6 +216,16 @@ function! s:plugin.is_active()
 endfunction
 
 "
+" Preserve global variable that is used for some key/name/prefix in definition.
+"
+function! s:preserve_definition_keyword()
+  let target = keys(s:plugin.preserved)
+  for target_name in target
+    let s:plugin.preserved[target_name] = get(g:, target_name, '')
+  endfor
+endfunction
+
+"
 " Sweep out various related data.
 "
 function! s:sweep_out()
@@ -229,7 +243,7 @@ endfunction
 "
 function! s:toggle_autocmd(flag)
   silent! execute printf('augroup %s', g:hlmarks_autocmd_group)
-    autocmd!
+    execute printf('autocmd! %s', s:plugin.preserved.hlmarks_autocmd_group)
 
     if a:flag
       autocmd BufEnter,FileChangedShellPost * call hlmarks#refresh_signs()
@@ -248,13 +262,15 @@ endfunction
 " Param:  [Any] flag: whether enable key-mappings or not
 "
 function! s:toggle_key_mappings(flag)
-  silent! execute printf('unmap %s', g:hlmarks_alias_native_mark_cmd)
+  let preserved_prefix_key = s:plugin.preserved.hlmarks_prefix_key
+
+  silent! execute printf('unmap %s', s:plugin.preserved.hlmarks_alias_native_mark_cmd)
   silent! nunmap  m
-  silent! execute printf('nunmap  %smr', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smm', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smM', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %sml', g:hlmarks_prefix_key)
-  silent! execute printf('nunmap  %smb', g:hlmarks_prefix_key)
+  silent! execute printf('nunmap  %smr', preserved_prefix_key)
+  silent! execute printf('nunmap  %smm', preserved_prefix_key)
+  silent! execute printf('nunmap  %smM', preserved_prefix_key)
+  silent! execute printf('nunmap  %sml', preserved_prefix_key)
+  silent! execute printf('nunmap  %smb', preserved_prefix_key)
 
   if a:flag && g:hlmarks_use_default_key_maps
 
@@ -283,29 +299,39 @@ endfunction
 " Param:  [Any] flag: whether enable user-cmd or not
 "
 function! s:toggle_usercmd(flag)
-  if a:flag
-    silent! execute printf(
-      \ 'command!          %sReload call hlmarks#reload_plugin()',
-      \ g:hlmarks_command_prefix)
-    return
-  endif
+  let preserved_prefix = s:plugin.preserved.hlmarks_command_prefix
+  let prefix = g:hlmarks_command_prefix
 
   redir => bundle
-    silent! execute printf('command %s', g:hlmarks_command_prefix)
+    silent! execute printf('command %s', preserved_prefix)
   redir END
 
   for crumb in split(bundle, "\n")
-    let matched = matchlist(crumb, '\v^\s+(' . g:hlmarks_command_prefix . '\S+)\s+.+$')
-    if !empty(matched) && match(matched[1], '\v(On|Off)$') < 0
+    let matched = matchlist(crumb, '\v^\s+(' . preserved_prefix . '\S+)\s+.+$')
+    if !empty(matched)
       silent! execute printf('delcommand %s', matched[1])
     endif
   endfor
+
+  if a:flag
+    silent! execute printf('command! %sOff call hlmarks#inactivate_plugin()', prefix)
+    silent! execute printf('command! %sReload call hlmarks#reload_plugin()', prefix)
+  else
+    silent! execute printf('command! %sOn  call hlmarks#activate_plugin()', prefix)
+  endif
 endfunction
 
 "
 " Refresh signs with latest state in current buffer if needed.
 "
-" Note:   Leave echoes for further debug.
+" Note:   Update in following case.
+"           Case1. Mark state is changed.
+"             This case is caused by changing state of un-settable marks, other plugin
+"             placed mark, user executes command directly, etc.
+"             Note that calculating difference of mark state is complecated, so refresh all.
+"           Case2. Only sign state is changed.
+"             This case indicates that other plugin placed sign, user executes command, etc.
+"             Note that sign cache has info of line that only contains sign placed by others.
 "
 function! s:update_signs()
   if !hlmarks#sign#should_place()
@@ -318,20 +344,14 @@ function! s:update_signs()
   let sign_snapshot = hlmarks#sign#generate_state()
   let sign_cache = hlmarks#sign#get_cache()
 
-  " 1) If mark state is changed, refresh all signs regardless of it state.
-  "    Calculate difference of mark state is complecated, so refresh all.
+  " Note: Leave echoes for further debug.
+
   if mark_snapshot != mark_cache
     call hlmarks#refresh_signs()
-
     " echo reltimestr(reltime()) . '(by change of marks)'
-
-  " 2) If only sign state is changed, it indicates other sign is placed
-  "    by other plugins, by user-operations, etc.
-  "    Note: sign state contains line that only has sign marked by others.
   elseif sign_snapshot != sign_cache
     call hlmarks#sign#place_with_delta(sign_cache, sign_snapshot)
     call hlmarks#sign#set_cache()
-
     " echo reltimestr(reltime()) . '(by change of signs)'
   else
     " echo reltimestr(reltime()) . '(no changes)'
