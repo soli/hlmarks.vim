@@ -42,9 +42,9 @@
     - https://github.com/bootleq/ShowMarks
     - https://github.com/exvim/ex-showmarks
 
-また、タイトルの ASCII Text は 'Tools Webtop' にあるウェブサービス
-（http://toolswebtop.com/text/ascii/figlet）で 'slant' スタイルを用いて作成し
-ました。こちらも、素晴らしいサービスに感謝します！
+また、タイトルの ASCII Text は 'ASCII.gallery'（http://ascii.gallery/figlet）
+で 'slant' スタイルを用いて作成しました。
+こちらも、素晴らしいサービスに感謝します！
 
 ==============================================================================
 概要                                                    *hlmarks-introduction*

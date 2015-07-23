@@ -42,8 +42,8 @@ Fork
     - https://github.com/bootleq/ShowMarks
     - https://github.com/exvim/ex-showmarks
 
-In addition, I made ASCII Text of title by the 'Tools Weptop' web service
-(http://toolswebtop.com/text/ascii/figlet) with using style 'slant'.
+In addition, I made ASCII Text of title by 'ASCII.gellery'
+(http://ascii.gallery/figlet) with using style 'slant'.
 Thank for a great service!
 
 ==============================================================================
