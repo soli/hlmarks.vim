@@ -419,10 +419,13 @@ describe 'should_place()'
 
     set modifiable
     Expect hlmarks#sign#should_place() to_be_true
+
+    set buftype=terminal
+    Expect hlmarks#sign#should_place() to_be_true
   end
 
   it 'should return false if all buffer type/state are banned'
-    let g:hlmarks_ignore_buffer_type = 'hqprm'
+    let g:hlmarks_ignore_buffer_type = 'hqprmt'
 
     set buftype=help
     Expect hlmarks#sign#should_place() to_be_false
@@ -437,6 +440,9 @@ describe 'should_place()'
     Expect hlmarks#sign#should_place() to_be_false
 
     set modifiable
+    Expect hlmarks#sign#should_place() to_be_false
+
+    set buftype=terminal
     Expect hlmarks#sign#should_place() to_be_false
   end
 

@@ -200,6 +200,7 @@ function! hlmarks#sign#should_place()
     \ || (match(ignore_buffer_type, '\cp') >= 0 && &pvw        ==  1         )
     \ || (match(ignore_buffer_type, '\cr') >= 0 && &readonly   ==  1         )
     \ || (match(ignore_buffer_type, '\cm') >= 0 && &modifiable ==  0         )
+    \ || (match(ignore_buffer_type, '\ct') >= 0 && &buftype    ==? 'terminal')
     \ ? 0 : 1
 endfunction
 

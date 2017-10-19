@@ -236,6 +236,7 @@ hlmarks_ignore_buffer_type                        *hlmarks_ignore_buffer_type*
         p|P - preview-window
         r|R - read-only
         m|M - modifiable
+        t|T - terminal
         
         let g:hlmarks_ignore_buffer_type = 'hqpr'
 <
