@@ -447,7 +447,7 @@ describe 'should_place()'
   end
 
   it 'should return false if all buffer type/state are banned with upper-case letler'
-    let g:hlmarks_ignore_buffer_type = 'HQPRM'
+    let g:hlmarks_ignore_buffer_type = 'HQPRMT'
 
     set buftype=help
     Expect hlmarks#sign#should_place() to_be_false
@@ -462,6 +462,9 @@ describe 'should_place()'
     Expect hlmarks#sign#should_place() to_be_false
 
     set modifiable
+    Expect hlmarks#sign#should_place() to_be_false
+
+    set buftype=terminal
     Expect hlmarks#sign#should_place() to_be_false
   end
 
